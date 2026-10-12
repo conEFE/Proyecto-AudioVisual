@@ -1,0 +1,28 @@
+[package]
+name = "audiovisual"
+description = "Visualizador de audio en vivo: análisis en tiempo real y envío OSC a TouchDesigner"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.104"
+clap = { version = "4.6.7", features = ["derive"] }
+cpal = "0.18.2"
+indexmap = { version = "2.14.2", features = ["serde"] }
+realfft = "3.5.0"
+rosc = "0.11.4"
+rtrb = "0.4.0"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_yaml = "0.9.34"
+symphonia = { version = "0.6.1", default-features = false, features = ["wav", "pcm", "mp3", "flac"] }
+
+[dev-dependencies]
+hound = "3.5.1"
+
+[[bin]]
+name = "av-live"
+path = "src/main.rs"
+
+[profile.release]
+lto = true
+codegen-units = 1

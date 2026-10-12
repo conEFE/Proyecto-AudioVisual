@@ -8,7 +8,22 @@ suena en tu PC), analiza frecuencias e instrumentos en tiempo real y envía los 
 entrada de audio ──► live.py (análisis ~12 ms) ──OSC──► TouchDesigner ──► visuales
 ```
 
-## Instalación
+Hay dos versiones que hacen lo mismo y envían los mismos datos:
+
+| | Cuándo usarla |
+|---|---|
+| **Rust** ([`rust/`](rust/README.md)) — `av-live` | para tocar en vivo: un solo ejecutable, latencia estable, ~3× más rápido |
+| **Python** — `live.py` | para experimentar y cambiar el algoritmo rápido |
+
+## Instalación (Rust)
+
+```bash
+cd rust && cargo build --release      # ejecutable en rust/target/release/av-live
+```
+
+Ver [`rust/README.md`](rust/README.md) para los detalles.
+
+## Instalación (Python)
 
 Requiere Python 3.10+.
 
@@ -19,6 +34,8 @@ pip install -r requirements.txt
 En Linux además: `sudo apt install libportaudio2`.
 
 ## Uso
+
+Con Rust es igual, cambiando `python live.py` por `av-live`.
 
 ```bash
 python live.py --list-devices        # ver entradas de audio disponibles
@@ -83,7 +100,8 @@ Todos los rangos y sensibilidades se ajustan en [`config.yaml`](config.yaml).
 ## Estructura
 
 ```
-live.py                   programa principal (CLI)
+rust/                     versión en Rust (av-live)
+live.py                   programa principal en Python (CLI)
 config.yaml               bandas, instrumentos, OSC, latencia
 visualizer/analyzer.py    análisis en tiempo real
 visualizer/dsp.py         suavizado, auto-ganancia, detector de golpes
@@ -99,6 +117,7 @@ tests/                    pruebas con señales sintéticas
 ```bash
 pip install pytest
 python -m pytest
+cd rust && cargo test --release
 ```
 
 ## Próximos pasos posibles

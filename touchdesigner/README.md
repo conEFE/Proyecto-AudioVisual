@@ -7,7 +7,7 @@
 1. Abre TouchDesigner.
 2. Crea un **Text DAT** y pega el contenido de [`build_demo.py`](build_demo.py).
 3. Click derecho sobre el DAT → **Run Script**.
-4. En tu terminal: `python live.py --meter`
+4. En tu terminal: `av-live --meter` (Rust) o `python live.py --meter` (Python)
 5. Mira el TOP `/project1/audiovisual/salida`.
 
 > El script usa la API estándar de TouchDesigner, pero no se probó dentro de TD en este repo.
