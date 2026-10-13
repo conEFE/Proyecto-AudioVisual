@@ -279,6 +279,15 @@ impl App {
                     self.start(InputKind::Demo);
                 }
             }
+            if self.input == InputKind::System && error.is_none() && self.value("mix/level") < 0.01 {
+                ui.label(
+                    egui::RichText::new(
+                        "Pon música en Spotify, YouTube o cualquier programa. Se captura lo que sale \
+                         por los parlantes o audífonos que Windows usa por defecto.",
+                    )
+                    .small(),
+                );
+            }
             if let Some(e) = &self.render_error {
                 ui.colored_label(egui::Color32::from_rgb(255, 120, 100), e);
             }
@@ -287,7 +296,7 @@ impl App {
             // --- Entrada de audio ---
             ui.collapsing("🎤 Entrada de audio", |ui| {
                 let label = match &self.input {
-                    InputKind::Live(None) => "Entrada por defecto".to_string(),
+                    InputKind::Live(None) => "Micrófono / entrada por defecto".to_string(),
                     InputKind::Live(Some(i)) => self
                         .devices
                         .get(*i)
@@ -298,14 +307,25 @@ impl App {
                         .map(|n| n.to_string_lossy().into_owned())
                         .unwrap_or_default(),
                     InputKind::Demo => "Canción de demostración".to_string(),
+                    InputKind::System => "Lo que suena en la PC".to_string(),
                 };
                 let mut choice: Option<InputKind> = None;
                 egui::ComboBox::from_id_salt("entrada")
                     .width(250.0)
                     .selected_text(label)
                     .show_ui(ui, |ui| {
+                        if cfg!(windows)
+                            && ui
+                                .selectable_label(
+                                    self.input == InputKind::System,
+                                    "Lo que suena en la PC (Spotify, YouTube…)",
+                                )
+                                .clicked()
+                        {
+                            choice = Some(InputKind::System);
+                        }
                         if ui
-                            .selectable_label(self.input == InputKind::Live(None), "Entrada por defecto")
+                            .selectable_label(self.input == InputKind::Live(None), "Micrófono / entrada por defecto")
                             .clicked()
                         {
                             choice = Some(InputKind::Live(None));

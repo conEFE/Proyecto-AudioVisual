@@ -26,6 +26,7 @@ En Windows y Mac no hace falta nada más.
 av-live --list-devices        # ver entradas de audio
 av-live --meter               # entrada por defecto + medidores en la terminal
 av-live --device 3 --meter    # elegir dispositivo (número o parte del nombre)
+av-live --sistema --meter     # lo que suena en la PC: Spotify, YouTube… (Windows)
 av-live --file tema.mp3       # probar con un archivo (WAV, MP3 o FLAC) como si fuera en vivo
 av-live --host 192.168.0.20   # mandar OSC a otra computadora
 av-live --help                # todas las opciones

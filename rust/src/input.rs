@@ -206,6 +206,30 @@ fn pick_input(device: Option<&str>) -> Result<cpal::Device> {
 pub fn live_input(device: Option<&str>, channels: u16) -> Result<Source> {
     let dev = pick_input(device)?;
     let default = dev.default_input_config()?;
+    open_input(dev, default, channels)
+}
+
+/// Captura lo que suena por los parlantes (Spotify, YouTube, cualquier programa).
+///
+/// En Windows usa el modo "loopback" de WASAPI sobre la salida por defecto: no hace falta
+/// instalar nada. En otros sistemas hay que elegir el dispositivo "monitor" en la lista.
+pub fn system_audio_input() -> Result<Source> {
+    if !cfg!(windows) {
+        bail!(
+            "capturar el audio del sistema directo sólo está disponible en Windows; \
+             en Linux elige el dispositivo \"Monitor of ...\" y en Mac instala BlackHole"
+        );
+    }
+    let dev = cpal::default_host()
+        .default_output_device()
+        .ok_or_else(|| anyhow!("no hay salida de audio por defecto"))?;
+    // en WASAPI, abrir una salida como entrada activa el modo loopback
+    let default = dev.default_output_config()?;
+    let ch = default.channels();
+    open_input(dev, default, ch)
+}
+
+fn open_input(dev: cpal::Device, default: cpal::SupportedStreamConfig, channels: u16) -> Result<Source> {
     let rate = default.sample_rate();
     let wanted = channels.max(1);
     // primero con los canales pedidos; si el dispositivo no los acepta, con los suyos

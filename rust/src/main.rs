@@ -45,6 +45,9 @@ struct Args {
     /// Cantidad de canales a capturar
     #[arg(long)]
     channels: Option<u16>,
+    /// Captura lo que suena en la PC (Spotify, YouTube…). Sólo Windows
+    #[arg(long)]
+    sistema: bool,
     /// Analiza un archivo (WAV, MP3, FLAC) simulando entrada en vivo
     #[arg(long)]
     file: Option<PathBuf>,
@@ -104,6 +107,7 @@ fn main() -> Result<()> {
 
     let mut source = match &args.file {
         Some(path) => input::file_input(path, !args.no_playback, !args.fast, args.looping)?,
+        None if args.sistema => input::system_audio_input()?,
         None => {
             let device = args.device.clone().or_else(|| device_from_config(&cfg.audio.device));
             input::live_input(device.as_deref(), channels)

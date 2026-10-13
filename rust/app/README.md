@@ -11,8 +11,9 @@ ni saber programar**. Usa el mismo análisis de audio que `av-live`.
   (graves, bombo, caja, hi-hat, bajo, melodía, nota, tempo…) y ajustas *base*, *cuánto* y *calma*.
 - **Presets**: guarda y carga tus combinaciones (JSON en la carpeta `presets/` junto al ejecutable).
 - **Cambio de escena automático** cada N compases, siguiendo el tempo.
-- **Entradas**: micrófono / interfaz, canción de demostración incluida, o arrastrar un archivo
-  WAV/MP3/FLAC a la ventana.
+- **Entradas**: lo que suena en la PC (Spotify, YouTube… en Windows, sin instalar nada; es la
+  entrada por defecto), micrófono / interfaz, canción de demostración incluida, o arrastrar un
+  archivo WAV/MP3/FLAC a la ventana.
 - **OSC opcional**: puede mandar los mismos datos a TouchDesigner al mismo tiempo.
 
 Atajos: `H` panel · `F`/`F11` pantalla completa · `1`–`5` escena.

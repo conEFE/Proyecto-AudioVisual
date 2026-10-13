@@ -17,6 +17,8 @@ pub enum InputKind {
     File(PathBuf),
     /// Canción de demostración generada por la app.
     Demo,
+    /// Lo que suena por los parlantes (Spotify, YouTube…).
+    System,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -72,7 +74,7 @@ impl Engine {
         let handle = thread::spawn(move || {
             if let Err(e) = run(kind, osc, cfg, &sh, &st) {
                 let mut s = sh.lock().unwrap();
-                s.error = Some(format!("{e:#}"));
+                s.error = Some(format!("No se pudo abrir el audio. Revisa la entrada elegida.\n({e:#})"));
                 s.status = "sin audio".into();
             }
         });
@@ -132,6 +134,7 @@ fn run(
             (play(data)?, format!("Archivo: {name}"))
         }
         InputKind::Demo => (play(crate::demo::song(32.0))?, "Canción de demostración".to_string()),
+        InputKind::System => (input::system_audio_input()?, "Lo que suena en la PC".to_string()),
     };
     let ch = source.channels;
     let hop = cfg.analysis.hop_size;

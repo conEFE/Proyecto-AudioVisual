@@ -57,7 +57,7 @@ una red de ejemplo automáticamente.
 |---|---|
 | Micrófono / línea | el dispositivo por defecto, o `--device N` |
 | Banda en vivo con interfaz multicanal | configura `audio.inputs` en `config.yaml` (un instrumento por canal) |
-| Lo que suena en el PC (Spotify, DJ, DAW) | **Windows:** "Mezcla estéreo" o [VB-Audio Cable](https://vb-audio.com/Cable/) · **Mac:** [BlackHole](https://github.com/ExistentialAudio/BlackHole) · **Linux:** el "monitor" de PulseAudio/PipeWire |
+| Lo que suena en el PC (Spotify, DJ, DAW) | **Windows, versión Rust / AV Visual:** directo, sin instalar nada (`av-live --sistema`) · **Windows, Python:** "Mezcla estéreo" o [VB-Audio Cable](https://vb-audio.com/Cable/) · **Mac:** [BlackHole](https://github.com/ExistentialAudio/BlackHole) · **Linux:** el "monitor" de PulseAudio/PipeWire |
 
 ## Qué envía (direcciones OSC)
 
