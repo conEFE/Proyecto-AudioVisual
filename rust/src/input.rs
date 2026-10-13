@@ -124,6 +124,18 @@ pub struct Source {
 }
 
 impl Source {
+    /// Como [`Source::read_block`] pero sin esperar: `None` si todavía no hay un bloque completo.
+    pub fn try_read_block(&mut self, block: &mut [f32]) -> Option<bool> {
+        if self.consumer.slots() >= block.len() {
+            self.consumer.pop_entire_slice(block).expect("hay suficientes muestras");
+            return Some(true);
+        }
+        if self.done.load(Ordering::Acquire) {
+            return Some(false);
+        }
+        None
+    }
+
     /// Llena `block` (frames × canales, entrelazado). Devuelve `false` cuando la fuente terminó.
     pub fn read_block(&mut self, block: &mut [f32]) -> bool {
         loop {
@@ -137,6 +149,14 @@ impl Source {
             thread::sleep(Duration::from_micros(500));
         }
     }
+}
+
+/// Nombres de las entradas de audio, en el mismo orden que acepta `--device N`.
+pub fn input_device_names() -> Vec<String> {
+    cpal::default_host()
+        .input_devices()
+        .map(|devs| devs.map(|d| d.to_string()).collect())
+        .unwrap_or_default()
 }
 
 pub fn list_devices() -> Result<String> {
@@ -258,7 +278,11 @@ where
 /// * `playback`: suena por los parlantes y el análisis va sincronizado con lo que se oye.
 /// * `realtime`: sin parlantes, entrega el audio al ritmo real (si es `false`, lo más rápido posible).
 pub fn file_input(path: &Path, playback: bool, realtime: bool, looping: bool) -> Result<Source> {
-    let data = decode_file(path)?;
+    data_input(decode_file(path)?, playback, realtime, looping)
+}
+
+/// Como [`file_input`], pero con audio que ya está en memoria.
+pub fn data_input(data: AudioData, playback: bool, realtime: bool, looping: bool) -> Result<Source> {
     if playback {
         return file_playback(data, looping);
     }

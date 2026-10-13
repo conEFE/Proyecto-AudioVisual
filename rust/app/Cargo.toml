@@ -1,0 +1,11 @@
+[package]
+name = "av-visual"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.104"
+audiovisual = { version = "0.1.0", path = ".." }
+eframe = { version = "0.36.2", default-features = false, features = ["glow", "default_fonts", "x11", "wayland"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"

@@ -8,7 +8,10 @@ suena en tu PC), analiza frecuencias e instrumentos en tiempo real y envía los 
 entrada de audio ──► live.py (análisis ~12 ms) ──OSC──► TouchDesigner ──► visuales
 ```
 
-Hay dos versiones que hacen lo mismo y envían los mismos datos:
+**¿No quieres usar TouchDesigner?** Usa **AV Visual** ([`rust/app/`](rust/app/README.md)): una app con
+ventana que dibuja los visuales sola y se edita con menús y deslizadores, sin programar.
+
+Para mandar los datos a TouchDesigner hay dos versiones que hacen lo mismo y envían los mismos datos:
 
 | | Cuándo usarla |
 |---|---|
@@ -101,6 +104,7 @@ Todos los rangos y sensibilidades se ajustan en [`config.yaml`](config.yaml).
 
 ```
 rust/                     versión en Rust (av-live)
+rust/app/                 AV Visual: app con visuales y editor (sin TouchDesigner)
 live.py                   programa principal en Python (CLI)
 config.yaml               bandas, instrumentos, OSC, latencia
 visualizer/analyzer.py    análisis en tiempo real
