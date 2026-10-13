@@ -74,7 +74,9 @@ impl Engine {
         let handle = thread::spawn(move || {
             if let Err(e) = run(kind, osc, cfg, &sh, &st) {
                 let mut s = sh.lock().unwrap();
-                s.error = Some(format!("No se pudo abrir el audio. Revisa la entrada elegida.\n({e:#})"));
+                s.error = Some(format!(
+                    "No se pudo abrir el audio. Revisa la entrada elegida.\n({e:#})"
+                ));
                 s.status = "sin audio".into();
             }
         });

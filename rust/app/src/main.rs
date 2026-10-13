@@ -1,13 +1,13 @@
-//! AV Visual: visualizador de música en vivo con editor, sin necesitar TouchDesigner.
+//! AV Visual: cada instrumento de la música tiene su propia capa visual, con estética glitch.
 //!
-//! Atajos: H oculta/muestra el panel · F pantalla completa · 1-5 cambia de escena.
-//! Arrastra un archivo de audio (WAV, MP3, FLAC) sobre la ventana para reproducirlo.
+//! Atajos: H oculta/muestra el panel · F pantalla completa · 1-6 enciende/apaga cada capa ·
+//! G más/menos glitch. Arrastra un archivo de audio (WAV, MP3, FLAC) a la ventana para reproducirlo.
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod band;
 mod demo;
 mod engine;
-mod mapping;
 mod visuals;
 
 use std::collections::HashMap;
@@ -18,45 +18,32 @@ use std::time::Instant;
 use audiovisual::{Config, input};
 use eframe::egui;
 
+use band::{Activity, BandState, LAYERS, PALETTES, Preset};
 use engine::{Engine, InputKind, OscTarget};
-use mapping::{Evaluator, PARAMS, Preset, SCENES, SOURCES};
-use visuals::{Renderer, Uniforms};
+use visuals::Renderer;
 
-const BAND_KEYS: [&str; 6] = [
-    "band/sub",
-    "band/bass",
-    "band/lowmid",
-    "band/mid",
-    "band/highmid",
-    "band/high",
-];
 const NOTE_NAMES: [&str; 12] = [
     "Do", "Do#", "Re", "Re#", "Mi", "Fa", "Fa#", "Sol", "Sol#", "La", "La#", "Si",
 ];
 
 struct Args {
     demo: bool,
-    scene: Option<usize>,
     hide_panel: bool,
+    preset: Option<String>,
 }
 
 fn parse_args() -> Args {
     let mut a = Args {
         demo: false,
-        scene: None,
         hide_panel: false,
+        preset: None,
     };
     let mut it = std::env::args().skip(1);
     while let Some(arg) = it.next() {
         match arg.as_str() {
             "--demo" => a.demo = true,
             "--sin-panel" => a.hide_panel = true,
-            "--escena" => {
-                a.scene = it
-                    .next()
-                    .and_then(|s| s.parse::<usize>().ok())
-                    .map(|n| n.saturating_sub(1))
-            }
+            "--preset" => a.preset = it.next(),
             _ => {}
         }
     }
@@ -68,6 +55,11 @@ fn presets_dir() -> PathBuf {
         .ok()
         .and_then(|p| p.parent().map(|d| d.join("presets")))
         .unwrap_or_else(|| PathBuf::from("presets"))
+}
+
+fn color32(c: [f32; 3], a: f32) -> egui::Color32 {
+    let f = |v: f32| (v.clamp(0.0, 1.0) * 255.0) as u8;
+    egui::Color32::from_rgba_unmultiplied(f(c[0]), f(c[1]), f(c[2]), f(a))
 }
 
 struct App {
@@ -86,16 +78,13 @@ struct App {
 
     renderer: Option<Arc<Mutex<Renderer>>>,
     render_error: Option<String>,
-    eval: Evaluator,
+    state: BandState,
+    activity: Activity,
     values: Vec<f32>,
     index: HashMap<String, usize>,
-    time: f32,
-    rot: f32,
     last_frame: Instant,
     show_panel: bool,
     fullscreen: bool,
-    last_phase: f32,
-    beats: u32,
 }
 
 impl App {
@@ -105,9 +94,16 @@ impl App {
             Some(Err(e)) => (None, Some(e)),
             None => (None, Some("no hay OpenGL disponible".into())),
         };
+        let mut visuals = egui::Visuals::dark();
+        visuals.panel_fill = egui::Color32::from_rgb(8, 8, 10);
+        visuals.window_fill = egui::Color32::from_rgb(8, 8, 10);
+        cc.egui_ctx.set_visuals(visuals);
+
         let cfg = Config::load(None).unwrap_or_else(|_| Config::builtin());
         let input = if args.demo {
             InputKind::Demo
+        } else if cfg!(windows) {
+            InputKind::System
         } else {
             InputKind::Live(None)
         };
@@ -119,24 +115,24 @@ impl App {
             input: input.clone(),
             devices: input::input_device_names(),
             osc_on: false,
-            preset: Preset::default_for(args.scene.unwrap_or(0).min(SCENES.len() - 1)),
+            preset: Preset::default(),
             saved: Vec::new(),
             save_name: String::new(),
             message: String::new(),
             renderer,
             render_error,
-            eval: Evaluator::default(),
+            state: BandState::default(),
+            activity: [0.0; 6],
             values: Vec::new(),
             index: HashMap::new(),
-            time: 0.0,
-            rot: 0.0,
             last_frame: Instant::now(),
             show_panel: !args.hide_panel,
             fullscreen: false,
-            last_phase: 0.0,
-            beats: 0,
         };
         app.refresh_saved();
+        if let Some(name) = &args.preset {
+            app.load_preset(name);
+        }
         app.start(input);
         app
     }
@@ -196,12 +192,12 @@ impl App {
 
     fn load_preset(&mut self, name: &str) {
         let path = presets_dir().join(format!("{name}.json"));
-        match std::fs::read_to_string(&path)
+        let loaded = std::fs::read_to_string(&path)
             .map_err(anyhow::Error::from)
-            .and_then(|t| Ok(serde_json::from_str::<Preset>(&t)?))
-        {
+            .and_then(|t| Ok(serde_json::from_str::<Preset>(&t)?));
+        match loaded {
             Ok(p) => {
-                self.preset = p;
+                self.preset = p.normalized();
                 self.message = format!("Cargado \"{name}\".");
             }
             Err(e) => self.message = format!("No se pudo cargar: {e}"),
@@ -216,8 +212,8 @@ impl App {
             .unwrap_or(0.0)
     }
 
-    /// Lee el audio y calcula los parámetros del cuadro actual.
-    fn update_audio(&mut self) -> (Uniforms, String, Option<String>) {
+    /// Lee el audio y calcula lo que dibuja el cuadro actual.
+    fn update_audio(&mut self) -> (band::BandUniforms, String, Option<String>) {
         let mut status = String::from("sin audio");
         let mut error = None;
         if let Some(e) = &self.engine {
@@ -232,49 +228,24 @@ impl App {
         let now = Instant::now();
         let dt = (now - self.last_frame).as_secs_f32().min(0.1);
         self.last_frame = now;
-
-        let vals = &self.values;
-        let index = &self.index;
-        let lookup = |k: &str| index.get(k).and_then(|&i| vals.get(i)).copied().unwrap_or(0.0);
-        let p = self.eval.eval(&self.preset, dt, lookup);
-        self.time += dt * p[1] * 2.0;
-        self.rot += dt * p[7];
-
-        // cambio de escena automático cada N compases
-        let phase = self.value("tempo/phase");
-        if phase < self.last_phase - 0.5 {
-            self.beats += 1;
-            let bars = self.preset.auto_scene_bars;
-            if bars > 0 && self.beats >= bars * 4 {
-                self.beats = 0;
-                let next = (self.preset.scene + 1) % SCENES.len();
-                let auto = bars;
-                self.preset = Preset::default_for(next);
-                self.preset.auto_scene_bars = auto;
-            }
-        }
-        self.last_phase = phase;
-
-        let mut bands = [0.0; 6];
-        for (b, k) in bands.iter_mut().zip(BAND_KEYS) {
-            *b = self.value(k);
-        }
-        let u = Uniforms {
-            time: self.time,
-            rot: self.rot,
-            params: p,
-            bands,
-            scene: self.preset.scene as f32,
-        };
+        let (vals, index) = (&self.values, &self.index);
+        let get = |k: &str| index.get(k).and_then(|&i| vals.get(i)).copied().unwrap_or(0.0);
+        let (u, activity) = self.state.update(&self.preset, dt, get);
+        self.activity = activity;
         (u, status, error)
     }
 
     fn panel(&mut self, ui: &mut egui::Ui, status: &str, error: Option<&str>) {
         egui::ScrollArea::vertical().show(ui, |ui| {
-            ui.heading("AV Visual");
-            ui.label(egui::RichText::new(status).weak());
+            ui.label(
+                egui::RichText::new("AV VISUAL // BANDA")
+                    .monospace()
+                    .strong()
+                    .size(16.0),
+            );
+            ui.label(egui::RichText::new(status).monospace().weak().small());
             if let Some(e) = error {
-                ui.colored_label(egui::Color32::from_rgb(255, 120, 100), e);
+                ui.colored_label(egui::Color32::from_rgb(255, 80, 80), e);
                 if ui.button("Usar canción de demostración").clicked() {
                     self.start(InputKind::Demo);
                 }
@@ -289,141 +260,63 @@ impl App {
                 );
             }
             if let Some(e) = &self.render_error {
-                ui.colored_label(egui::Color32::from_rgb(255, 120, 100), e);
+                ui.colored_label(egui::Color32::from_rgb(255, 80, 80), e);
             }
-            ui.add_space(6.0);
+            ui.add_space(4.0);
+            self.input_section(ui);
 
-            // --- Entrada de audio ---
-            ui.collapsing("🎤 Entrada de audio", |ui| {
-                let label = match &self.input {
-                    InputKind::Live(None) => "Micrófono / entrada por defecto".to_string(),
-                    InputKind::Live(Some(i)) => self
-                        .devices
-                        .get(*i)
-                        .cloned()
-                        .unwrap_or_else(|| format!("Dispositivo {i}")),
-                    InputKind::File(p) => p
-                        .file_name()
-                        .map(|n| n.to_string_lossy().into_owned())
-                        .unwrap_or_default(),
-                    InputKind::Demo => "Canción de demostración".to_string(),
-                    InputKind::System => "Lo que suena en la PC".to_string(),
-                };
-                let mut choice: Option<InputKind> = None;
-                egui::ComboBox::from_id_salt("entrada")
-                    .width(250.0)
-                    .selected_text(label)
-                    .show_ui(ui, |ui| {
-                        if cfg!(windows)
-                            && ui
-                                .selectable_label(
-                                    self.input == InputKind::System,
-                                    "Lo que suena en la PC (Spotify, YouTube…)",
-                                )
-                                .clicked()
-                        {
-                            choice = Some(InputKind::System);
-                        }
-                        if ui
-                            .selectable_label(self.input == InputKind::Live(None), "Micrófono / entrada por defecto")
-                            .clicked()
-                        {
-                            choice = Some(InputKind::Live(None));
-                        }
-                        for (i, name) in self.devices.iter().enumerate() {
-                            if ui
-                                .selectable_label(self.input == InputKind::Live(Some(i)), name)
-                                .clicked()
-                            {
-                                choice = Some(InputKind::Live(Some(i)));
-                            }
-                        }
-                        if ui
-                            .selectable_label(self.input == InputKind::Demo, "Canción de demostración")
-                            .clicked()
-                        {
-                            choice = Some(InputKind::Demo);
-                        }
-                    });
-                if ui.button("↻ Buscar dispositivos").clicked() {
-                    self.devices = input::input_device_names();
-                }
-                ui.label(
-                    egui::RichText::new("Para usar tus canciones, arrastra un archivo de audio a la ventana.")
-                        .small()
-                        .weak(),
-                );
-                if let Some(c) = choice {
-                    self.start(c);
-                }
-            });
-
-            // --- Escena ---
+            // --- Capas: una por instrumento ---
             ui.separator();
-            ui.label(egui::RichText::new("Escena").strong());
-            ui.horizontal_wrapped(|ui| {
-                for (i, name) in SCENES.iter().enumerate() {
-                    if ui
-                        .selectable_label(self.preset.scene == i, format!("{} {name}", i + 1))
-                        .clicked()
-                        && self.preset.scene != i
-                    {
-                        let auto = self.preset.auto_scene_bars;
-                        self.preset = Preset::default_for(i);
-                        self.preset.auto_scene_bars = auto;
-                    }
-                }
-            });
-            ui.horizontal(|ui| {
-                ui.label("Cambiar sola cada");
-                ui.add(egui::DragValue::new(&mut self.preset.auto_scene_bars).range(0..=64));
-                ui.label("compases (0 = nunca)");
-            });
-
-            // --- Mapeos ---
-            ui.separator();
-            ui.label(egui::RichText::new("Qué mueve cada cosa").strong());
+            ui.label(egui::RichText::new("INSTRUMENTOS").monospace().strong());
             ui.label(
-                egui::RichText::new("Elige qué parte del sonido controla cada parámetro de la imagen.")
+                egui::RichText::new("Cada uno tiene su capa. La barra muestra cuándo suena.")
                     .small()
                     .weak(),
             );
-            for (i, (name, help)) in PARAMS.iter().enumerate() {
-                let Some(m) = self.preset.params.get_mut(i) else {
-                    continue;
-                };
-                ui.add_space(4.0);
-                ui.horizontal(|ui| {
-                    ui.label(egui::RichText::new(*name).strong()).on_hover_text(*help);
-                    egui::ComboBox::from_id_salt(("fuente", i))
-                        .width(170.0)
-                        .selected_text(mapping::source_label(&m.source))
-                        .show_ui(ui, |ui| {
-                            for (key, label, _) in SOURCES {
-                                ui.selectable_value(&mut m.source, key.to_string(), *label);
-                            }
-                        });
-                });
-                ui.add(egui::Slider::new(&mut m.base, 0.0..=1.0).text("base"));
-                if !m.source.is_empty() {
-                    ui.add(egui::Slider::new(&mut m.amount, 0.0..=2.0).text("cuánto"));
-                    ui.add(egui::Slider::new(&mut m.smooth, 0.0..=2.0).text("calma (s)"));
-                }
+            for i in 0..LAYERS.len() {
+                self.layer_ui(ui, i);
             }
-            if ui.button("Restablecer esta escena").clicked() {
-                self.preset = Preset::default_for(self.preset.scene);
+
+            // --- Paleta ---
+            ui.separator();
+            ui.label(egui::RichText::new("PALETA").monospace().strong());
+            ui.horizontal_wrapped(|ui| {
+                for (i, (name, _)) in PALETTES.iter().enumerate() {
+                    if ui.button(*name).clicked() {
+                        self.preset.apply_palette(i);
+                    }
+                }
+            });
+
+            // --- Glitch ---
+            ui.separator();
+            ui.label(egui::RichText::new("GLITCH").monospace().strong());
+            let g = &mut self.preset.glitch;
+            ui.add(egui::Slider::new(&mut g.base, 0.0..=1.0).text("siempre"))
+                .on_hover_text("Glitch permanente, aunque no haya golpes");
+            ui.add(egui::Slider::new(&mut g.hits, 0.0..=1.0).text("con golpes"))
+                .on_hover_text("Cuánto glitch suman la caja y el bombo");
+            ui.add(egui::Slider::new(&mut g.chaos, 0.0..=1.0).text("caos"))
+                .on_hover_text("Pixelado, bloques desplazados e inversiones");
+            ui.add(egui::Slider::new(&mut g.scanlines, 0.0..=1.0).text("líneas de TV"));
+            ui.horizontal(|ui| {
+                ui.checkbox(&mut g.grid, "rejilla");
+                ui.checkbox(&mut g.legend, "leyenda");
+            });
+            if ui.button("Restablecer todo").clicked() {
+                self.preset = Preset::default();
             }
 
             // --- Presets ---
             ui.separator();
-            ui.label(egui::RichText::new("Mis presets").strong());
+            ui.label(egui::RichText::new("MIS PRESETS").monospace().strong());
             ui.horizontal(|ui| {
                 ui.add(
                     egui::TextEdit::singleline(&mut self.save_name)
                         .hint_text("nombre")
                         .desired_width(150.0),
                 );
-                if ui.button("💾 Guardar").clicked() {
+                if ui.button("Guardar").clicked() {
                     self.save_preset();
                 }
             });
@@ -444,8 +337,8 @@ impl App {
 
             // --- OSC ---
             ui.separator();
-            ui.collapsing("📡 Enviar también a TouchDesigner (OSC)", |ui| {
-                let before = (self.osc_on, self.osc_host.clone(), self.osc_port);
+            ui.collapsing("Enviar también a TouchDesigner (OSC)", |ui| {
+                let before = self.osc_on;
                 ui.checkbox(&mut self.osc_on, "Enviar datos por OSC");
                 ui.horizontal(|ui| {
                     ui.label("IP");
@@ -453,67 +346,174 @@ impl App {
                     ui.label("puerto");
                     ui.add(egui::DragValue::new(&mut self.osc_port).range(1..=65535));
                 });
-                if before != (self.osc_on, self.osc_host.clone(), self.osc_port) && ui.button("Aplicar").clicked() {
-                    self.start(self.input.clone());
-                }
-                if before.0 != self.osc_on {
+                if (before != self.osc_on) || (self.osc_on && ui.button("Aplicar IP/puerto").clicked()) {
                     self.start(self.input.clone());
                 }
             });
 
-            // --- Medidores ---
             ui.separator();
-            ui.label(egui::RichText::new("Sonido ahora").strong());
             let note = if self.value("lead/confidence") > 0.3 {
                 NOTE_NAMES[(self.value("lead/pitch_class") as usize).min(11)]
             } else {
                 "-"
             };
-            ui.label(format!("{:.0} BPM · nota {note}", self.value("tempo/bpm")));
-            for (key, label) in [
-                ("mix/level", "Volumen"),
-                ("band/bass", "Graves"),
-                ("band/mid", "Medios"),
-                ("band/high", "Agudos"),
-                ("drums/kick", "Bombo"),
-                ("drums/snare", "Caja"),
-                ("drums/hihat", "Hi-hat"),
-                ("lead", "Melodía"),
-            ] {
-                ui.add(
-                    egui::ProgressBar::new(self.value(key).clamp(0.0, 1.0))
-                        .text(label)
-                        .desired_height(12.0),
-                );
-            }
-            ui.add_space(8.0);
+            ui.label(egui::RichText::new(format!("{:.0} BPM · nota {note}", self.value("tempo/bpm"))).monospace());
             ui.label(
-                egui::RichText::new("H: ocultar panel · F: pantalla completa · 1-5: escena")
+                egui::RichText::new("H panel · F pantalla completa · 1-6 capas · G glitch")
                     .small()
                     .weak(),
             );
         });
+    }
+
+    fn input_section(&mut self, ui: &mut egui::Ui) {
+        ui.collapsing("Entrada de audio", |ui| {
+            let label = match &self.input {
+                InputKind::Live(None) => "Micrófono / entrada por defecto".to_string(),
+                InputKind::Live(Some(i)) => self
+                    .devices
+                    .get(*i)
+                    .cloned()
+                    .unwrap_or_else(|| format!("Dispositivo {i}")),
+                InputKind::File(p) => p
+                    .file_name()
+                    .map(|n| n.to_string_lossy().into_owned())
+                    .unwrap_or_default(),
+                InputKind::Demo => "Canción de demostración".to_string(),
+                InputKind::System => "Lo que suena en la PC".to_string(),
+            };
+            let mut choice: Option<InputKind> = None;
+            egui::ComboBox::from_id_salt("entrada")
+                .width(250.0)
+                .selected_text(label)
+                .show_ui(ui, |ui| {
+                    if cfg!(windows)
+                        && ui
+                            .selectable_label(
+                                self.input == InputKind::System,
+                                "Lo que suena en la PC (Spotify, YouTube…)",
+                            )
+                            .clicked()
+                    {
+                        choice = Some(InputKind::System);
+                    }
+                    if ui
+                        .selectable_label(self.input == InputKind::Live(None), "Micrófono / entrada por defecto")
+                        .clicked()
+                    {
+                        choice = Some(InputKind::Live(None));
+                    }
+                    for (i, name) in self.devices.iter().enumerate() {
+                        if ui
+                            .selectable_label(self.input == InputKind::Live(Some(i)), name)
+                            .clicked()
+                        {
+                            choice = Some(InputKind::Live(Some(i)));
+                        }
+                    }
+                    if ui
+                        .selectable_label(self.input == InputKind::Demo, "Canción de demostración")
+                        .clicked()
+                    {
+                        choice = Some(InputKind::Demo);
+                    }
+                });
+            if ui.button("Buscar dispositivos").clicked() {
+                self.devices = input::input_device_names();
+            }
+            ui.label(
+                egui::RichText::new("Para usar un archivo, arrástralo (WAV, MP3, FLAC) a la ventana.")
+                    .small()
+                    .weak(),
+            );
+            if let Some(c) = choice {
+                self.start(c);
+            }
+        });
+    }
+
+    fn layer_ui(&mut self, ui: &mut egui::Ui, i: usize) {
+        let (name, help, styles) = LAYERS[i];
+        let act = self.activity[i];
+        let layer = &mut self.preset.layers[i];
+        ui.add_space(3.0);
+        ui.horizontal(|ui| {
+            ui.checkbox(&mut layer.on, "");
+            ui.color_edit_button_rgb(&mut layer.color);
+            ui.label(egui::RichText::new(format!("{} {name}", i + 1)).monospace().strong())
+                .on_hover_text(help);
+            let (rect, _) = ui.allocate_exact_size(egui::vec2(60.0, 8.0), egui::Sense::hover());
+            ui.painter().rect_filled(rect, 0.0, egui::Color32::from_gray(30));
+            let mut fill = rect;
+            fill.set_width(rect.width() * act.clamp(0.0, 1.0));
+            ui.painter().rect_filled(fill, 0.0, color32(layer.color, 1.0));
+        });
+        if layer.on {
+            ui.horizontal(|ui| {
+                ui.add_space(24.0);
+                for (s, label) in styles.iter().enumerate() {
+                    ui.selectable_value(&mut layer.style, s, *label);
+                }
+            });
+            ui.horizontal(|ui| {
+                ui.add_space(24.0);
+                ui.add(
+                    egui::Slider::new(&mut layer.intensity, 0.0..=2.0)
+                        .text("brillo")
+                        .show_value(false),
+                );
+                ui.add(
+                    egui::Slider::new(&mut layer.size, 0.0..=2.0)
+                        .text("tamaño")
+                        .show_value(false),
+                );
+            });
+        }
+    }
+
+    /// Leyenda abajo a la izquierda: qué color es cada instrumento y cuándo suena.
+    fn legend(&self, ui: &egui::Ui, rect: egui::Rect) {
+        let painter = ui.painter_at(rect);
+        let font = egui::FontId::monospace(11.0);
+        let mut x = rect.left() + 14.0;
+        let y = rect.bottom() - 18.0;
+        for (i, (name, _, _)) in LAYERS.iter().enumerate() {
+            let l = &self.preset.layers[i];
+            if !l.on {
+                continue;
+            }
+            let a = 0.25 + 0.75 * self.activity[i].clamp(0.0, 1.0);
+            let sq = egui::Rect::from_center_size(egui::pos2(x + 4.0, y), egui::vec2(8.0, 8.0));
+            painter.rect_filled(sq, 0.0, color32(l.color, a));
+            let text = painter.text(
+                egui::pos2(x + 12.0, y),
+                egui::Align2::LEFT_CENTER,
+                name.to_uppercase(),
+                font.clone(),
+                egui::Color32::from_white_alpha((90.0 + 165.0 * a) as u8),
+            );
+            x = text.right() + 16.0;
+        }
     }
 }
 
 impl eframe::App for App {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let ctx = ui.ctx().clone();
-        // atajos y archivos arrastrados
-        let (toggle, full, scene_key, dropped) = ctx.input(|i| {
-            let scene = [
-                egui::Key::Num1,
-                egui::Key::Num2,
-                egui::Key::Num3,
-                egui::Key::Num4,
-                egui::Key::Num5,
-            ]
-            .iter()
-            .position(|k| i.key_pressed(*k));
+        let keys = [
+            egui::Key::Num1,
+            egui::Key::Num2,
+            egui::Key::Num3,
+            egui::Key::Num4,
+            egui::Key::Num5,
+            egui::Key::Num6,
+        ];
+        let (toggle, full, glitch, layer_key, dropped) = ctx.input(|i| {
             (
                 i.key_pressed(egui::Key::H),
                 i.key_pressed(egui::Key::F) || i.key_pressed(egui::Key::F11),
-                scene,
+                i.key_pressed(egui::Key::G),
+                keys.iter().position(|k| i.key_pressed(*k)),
                 i.raw
                     .dropped_files
                     .iter()
@@ -530,10 +530,12 @@ impl eframe::App for App {
                 self.fullscreen = !self.fullscreen;
                 ctx.send_viewport_cmd(egui::ViewportCommand::Fullscreen(self.fullscreen));
             }
-            if let Some(s) = scene_key
-                && s != self.preset.scene
-            {
-                self.preset = Preset::default_for(s);
+            if glitch {
+                let g = &mut self.preset.glitch;
+                g.base = if g.base > 0.3 { 0.05 } else { 0.6 };
+            }
+            if let Some(k) = layer_key {
+                self.preset.layers[k].on = !self.preset.layers[k].on;
             }
         }
         if let Some(path) = dropped {
@@ -545,7 +547,7 @@ impl eframe::App for App {
         if self.show_panel {
             egui::Panel::left("panel")
                 .resizable(true)
-                .default_size(330.0)
+                .default_size(320.0)
                 .show(ui, |ui| self.panel(ui, &status, error.as_deref()));
         }
         egui::CentralPanel::default().frame(egui::Frame::NONE).show(ui, |ui| {
@@ -553,8 +555,10 @@ impl eframe::App for App {
             if let Some(r) = &self.renderer {
                 visuals::paint(ui, rect, r, uniforms);
             }
+            if self.preset.glitch.legend {
+                self.legend(ui, rect);
+            }
             if !self.show_panel {
-                // botón discreto para volver a mostrar el panel
                 let btn = egui::Rect::from_min_size(rect.min + egui::vec2(8.0, 8.0), egui::vec2(28.0, 24.0));
                 if ui.put(btn, egui::Button::new("☰")).clicked() {
                     self.show_panel = true;

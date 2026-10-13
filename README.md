@@ -9,7 +9,8 @@ entrada de audio ──► live.py (análisis ~12 ms) ──OSC──► TouchDe
 ```
 
 **¿No quieres usar TouchDesigner?** Usa **AV Visual** ([`rust/app/`](rust/app/README.md)): una app con
-ventana que dibuja los visuales sola y se edita con menús y deslizadores, sin programar.
+ventana donde cada instrumento (bombo, caja, hi-hat, bajo, melodía, armonía) tiene su propia capa
+visual, con estética minimalista y glitch. Se edita con menús y deslizadores, sin programar.
 
 Para mandar los datos a TouchDesigner hay dos versiones que hacen lo mismo y envían los mismos datos:
 
@@ -104,7 +105,7 @@ Todos los rangos y sensibilidades se ajustan en [`config.yaml`](config.yaml).
 
 ```
 rust/                     versión en Rust (av-live)
-rust/app/                 AV Visual: app con visuales y editor (sin TouchDesigner)
+rust/app/                 AV Visual: modo Banda, una capa por instrumento (sin TouchDesigner)
 live.py                   programa principal en Python (CLI)
 config.yaml               bandas, instrumentos, OSC, latencia
 visualizer/analyzer.py    análisis en tiempo real

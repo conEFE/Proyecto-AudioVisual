@@ -1,4 +1,4 @@
-//! Dibujo de los visuales con un shader OpenGL (5 escenas en un solo programa).
+//! Dibujo del modo Banda con un shader OpenGL: una capa por instrumento + glitch encima.
 
 use std::sync::{Arc, Mutex};
 
@@ -6,15 +6,7 @@ use eframe::egui;
 use eframe::egui_glow;
 use eframe::glow::{self, HasContext};
 
-/// Lo que el shader necesita en cada cuadro.
-#[derive(Clone, Copy, Debug, Default)]
-pub struct Uniforms {
-    pub time: f32,
-    pub rot: f32,
-    pub params: [f32; 8],
-    pub bands: [f32; 6],
-    pub scene: f32,
-}
+use crate::band::BandUniforms;
 
 const VERTEX: &str = r#"
 #if NEW_SHADER_INTERFACE
@@ -46,98 +38,207 @@ varying vec2 v_uv;
 #endif
 uniform vec2 u_res;
 uniform float u_time;
-uniform float u_rot;
-uniform float u_p[8];
+uniform float u_seed;
+uniform float u_on[6];
+uniform float u_style[6];
+uniform vec3 u_col[6];
+uniform float u_int[6];
+uniform float u_size[6];
+uniform float u_kick_age[4];
+uniform float u_snare_age;
+uniform float u_snare_seed;
+uniform float u_hat_age;
+uniform float u_hat_seed;
+uniform float u_hat_lvl;
+uniform float u_bass;
 uniform float u_bands[6];
-uniform float u_scene;
+uniform float u_lead;
+uniform float u_lead_y[48];
+uniform float u_lead_a[48];
+uniform float u_chroma[12];
+uniform float u_glitch;
+uniform float u_chaos;
+uniform float u_scan;
+uniform float u_grid;
 
-float hash(vec2 p) {
-    p = fract(p * vec2(123.34, 456.21));
-    p += dot(p, p + 45.32);
-    return fract(p.x * p.y);
-}
-float noise(vec2 p) {
-    vec2 i = floor(p), f = fract(p);
-    vec2 u = f * f * (3.0 - 2.0 * f);
-    return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
-               mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
-}
-float fbm(vec2 p, float oct) {
-    float v = 0.0, a = 0.5;
-    for (int i = 0; i < 8; i++) {
-        if (float(i) >= oct) break;
-        v += a * noise(p);
-        p = p * 2.03 + vec2(1.7, 9.2);
-        a *= 0.5;
+float px;      // tamaño de un pixel en coordenadas de la escena
+float aspect;
+
+float h11(float x) { return fract(sin(x * 127.1 + 0.31) * 43758.5453); }
+float h21(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float box(vec2 p, vec2 b) { vec2 d = abs(p) - b; return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0); }
+
+// p: x en [-aspect, aspect], y en [-1, 1]
+vec3 scene(vec2 p) {
+    vec3 c = vec3(0.0);
+    vec2 center = vec2(0.0, 0.05);
+
+    // rejilla de fondo (mínima)
+    if (u_grid > 0.5) {
+        vec2 g = abs(fract(p * 4.0) - 0.5);
+        c += vec3(0.07) * step(0.5 - px * 1.5, max(g.x, g.y));
     }
-    return v;
-}
-vec3 hsv(float h, float s, float v) {
-    vec3 k = clamp(abs(mod(h * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
-    return v * mix(vec3(1.0), k, s);
-}
-mat2 rot(float a) { float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }
-// energía del espectro en x = 0 (graves) .. 1 (agudos), interpolando las 6 bandas
-float bandAt(float x) {
-    float f = clamp(x, 0.0, 1.0) * 5.0;
-    float e = 0.0;
-    for (int k = 0; k < 6; k++) e += max(0.0, 1.0 - abs(f - float(k))) * u_bands[k];
-    return e;
+
+    // BAJO: abajo
+    if (u_on[3] > 0.5) {
+        vec3 col = u_col[3] * u_int[3];
+        if (u_style[3] < 0.5) {
+            float y = -0.72 + sin(p.x * (1.2 + u_size[3] * 1.5) + u_time * 1.3) * (0.02 + 0.22 * u_bass);
+            float th = px * 2.0 + 0.02 * u_bass * u_size[3];
+            c += col * step(abs(p.y - y), th);
+            c += col * 0.16 * u_bass * step(p.y, y);
+        } else {
+            float n = 24.0;
+            float xn = p.x / aspect * 0.5 + 0.5;
+            float i = floor(xn * n);
+            float cell = fract(xn * n);
+            float e = u_bass * (0.55 + 0.45 * sin(i * 1.7 + u_time * 2.0));
+            float h = 0.03 + 0.45 * e * u_size[3];
+            c += col * step(p.y, -1.0 + h) * step(0.15, cell) * step(cell, 0.85);
+        }
+    }
+
+    // ARMONÍA: arriba (teclas) o alrededor del centro (orbes)
+    if (u_on[5] > 0.5) {
+        vec3 col = u_col[5] * u_int[5];
+        for (int i = 0; i < 12; i++) {
+            float fi = float(i);
+            float e = u_chroma[i];
+            if (u_style[5] < 0.5) {
+                float w = 0.075 * (0.6 + 0.4 * u_size[5]);
+                vec2 cp = vec2((fi - 5.5) * w * 1.3, 0.86);
+                float d = box(p - cp, vec2(w * 0.5));
+                c += col * (step(d, 0.0) * e * e + step(abs(d), px) * 0.3);
+            } else {
+                float ang = fi / 12.0 * 6.2831 - 1.5708;
+                vec2 cp = center + vec2(cos(ang), sin(ang)) * (0.5 + 0.2 * u_size[5]);
+                float d = length(p - cp) - (0.012 + 0.05 * e * e);
+                c += col * (step(d, 0.0) * (0.25 + 0.75 * e) + step(abs(d), px) * 0.3);
+            }
+        }
+    }
+
+    // BOMBO: centro
+    if (u_on[0] > 0.5) {
+        vec3 col = u_col[0] * u_int[0];
+        if (u_style[0] < 0.5) {
+            for (int i = 0; i < 4; i++) {
+                float a = u_kick_age[i];
+                if (a < 1.5) {
+                    float r = a * (0.8 + 0.6 * u_size[0]) * 1.4;
+                    float d = abs(length(p - center) - r);
+                    c += col * step(d, px * 2.0 + 0.012 * (1.0 - a)) * (1.0 - a / 1.5);
+                }
+            }
+            c += col * step(length(p - center), 0.01 + 0.03 * exp(-u_kick_age[0] * 8.0));
+        } else {
+            float a = u_kick_age[0];
+            float s = (0.06 + 0.18 * u_size[0]) * (1.0 + 1.2 * exp(-a * 9.0));
+            float d = box(p - center, vec2(s));
+            c += col * step(d, 0.0) * (0.15 + 0.85 * exp(-a * 7.0));
+            c += col * step(abs(d), px * 1.5);
+        }
+    }
+
+    // MELODÍA: la forma de la melodía, de izquierda (antes) a derecha (ahora)
+    if (u_on[4] > 0.5) {
+        vec3 col = u_col[4] * u_int[4];
+        float fidx = (p.x / aspect * 0.5 + 0.5) * 47.0;
+        float yv = 0.0, av = 0.0;
+        for (int i = 0; i < 48; i++) {
+            float w = step(abs(fidx - float(i)), 0.5);
+            yv += w * u_lead_y[i];
+            av += w * u_lead_a[i];
+        }
+        float y = mix(-0.4, 0.68, yv);
+        float on = step(0.05, av);
+        if (u_style[4] < 0.5) {
+            c += col * on * step(abs(p.y - y), px * (1.5 + 5.0 * av * u_size[4]));
+        } else {
+            float cx = fract(fidx + 0.5);
+            c += col * on * step(abs(p.y - y), 0.012 * u_size[4] + px * 2.0) * step(0.08, cx) * step(cx, 0.92);
+        }
+        vec2 head = vec2(aspect * 0.985, mix(-0.4, 0.68, u_lead_y[47]));
+        c += col * step(0.05, u_lead_a[47]) * step(box(p - head, vec2(0.008 + 0.02 * u_lead)), 0.0);
+    }
+
+    // HI-HAT: chispas por toda la pantalla
+    if (u_on[2] > 0.5) {
+        vec3 col = u_col[2] * u_int[2];
+        float fade = exp(-u_hat_age * 9.0);
+        if (u_style[2] < 0.5) {
+            float cells = 28.0 / (0.5 + 0.5 * u_size[2]);
+            vec2 g = floor(p * cells);
+            vec2 f = fract(p * cells);
+            float lit = step(1.0 - 0.05 * (0.5 + u_hat_lvl), h21(g + u_hat_seed * 13.1));
+            float sq = step(abs(f.x - 0.5), 0.2) * step(abs(f.y - 0.5), 0.2);
+            c += col * lit * sq * fade * 1.4;
+        } else {
+            vec2 g = floor(p / (px * (2.0 + 3.0 * u_size[2])));
+            float r = h21(g + floor(u_time * 60.0));
+            c += col * step(0.94, r) * (fade + 0.06 * u_hat_lvl);
+        }
+    }
+
+    // CAJA: cortes horizontales o rayos
+    if (u_on[1] > 0.5) {
+        vec3 col = u_col[1] * u_int[1];
+        float fade = exp(-u_snare_age * 9.0);
+        if (u_style[1] < 0.5) {
+            for (int i = 0; i < 5; i++) {
+                float fi = float(i);
+                float y = h11(u_snare_seed * 7.3 + fi) * 2.0 - 1.0;
+                float h = (0.003 + 0.03 * h11(u_snare_seed + fi * 3.1)) * (0.5 + u_size[1]);
+                float x0 = (h11(u_snare_seed * 2.7 + fi) * 2.0 - 1.0) * aspect;
+                c += col * step(abs(p.y - y), h) * step(x0 - 0.2, p.x + 0.8 * h11(fi + u_snare_seed)) * fade;
+            }
+        } else {
+            for (int i = 0; i < 3; i++) {
+                float fi = float(i);
+                float ang = h11(u_snare_seed + fi * 1.9) * 3.1416;
+                vec2 n = vec2(-sin(ang), cos(ang));
+                float d = abs(dot(p, n) - (h11(u_snare_seed * 2.1 + fi) - 0.5) * 1.2);
+                c += col * step(d, 0.003 + 0.012 * u_size[1] * (1.0 - fi * 0.3)) * fade * 1.4;
+            }
+        }
+    }
+    return c;
 }
 
 void main() {
-    vec2 uv = v_uv * 2.0 - 1.0;
-    uv.x *= u_res.x / max(u_res.y, 1.0);
-    float zoom = u_p[0], flash = u_p[2], hue = u_p[3];
-    float sat = clamp(u_p[4], 0.0, 1.0), detail = clamp(u_p[5], 0.0, 1.5), dist = u_p[6];
-    float t = u_time;
-    vec2 p = rot(u_rot) * uv / (0.6 + 1.4 * zoom);
+    vec2 frag = v_uv * u_res;
+    aspect = u_res.x / max(u_res.y, 1.0);
+    px = 2.0 / max(u_res.y, 1.0);
+    float g = u_glitch;
+    vec2 uv = v_uv;
+
+    // pixelado (caos)
+    float pix = 1.0 + floor(u_chaos * g * 8.0);
+    uv = (floor(uv * u_res / pix) + 0.5) * pix / u_res;
+
+    // bloques desplazados
+    float rows = 6.0 + floor(26.0 * h11(u_seed));
+    float row = floor(uv.y * rows);
+    float r = h11(row * 1.37 + u_seed * 9.1);
+    uv.x += step(1.0 - g * (0.35 + 0.5 * u_chaos), r) * (h11(row + u_seed * 3.7) - 0.5) * 0.35 * g;
+
+    vec2 P = (uv * 2.0 - 1.0) * vec2(aspect, 1.0);
     vec3 col;
-    if (u_scene < 0.5) {            // Nebulosa
-        vec2 q = vec2(fbm(p * 1.5 + vec2(0.0, t * 0.3), 4.0), fbm(p * 1.5 + vec2(5.2, 1.3) - t * 0.2, 4.0));
-        float n = fbm(p * 2.0 + q * (1.0 + 3.0 * dist) + t * 0.1, 3.0 + 4.0 * detail);
-        col = hsv(hue + n * 0.25, sat, smoothstep(0.15, 0.95, n) * (0.6 + flash * 1.4));
-    } else if (u_scene < 1.5) {     // Túnel
-        float r = length(p), a = atan(p.y, p.x);
-        float z = 0.35 / max(r, 0.02) + t * 1.5;
-        float rings = 0.5 + 0.5 * sin(z * 6.2831 * (1.0 + detail * 2.0));
-        float spokes = 0.5 + 0.5 * sin(a * floor(3.0 + detail * 10.0) + z * dist * 3.0);
-        float v = mix(rings, rings * spokes, 0.5 + 0.5 * clamp(dist, 0.0, 1.0)) * smoothstep(0.0, 0.35, r);
-        col = hsv(hue + z * 0.02, sat, v * (0.5 + flash * 1.5));
-        col += flash * 0.3 * exp(-r * 3.0);
-    } else if (u_scene < 2.5) {     // Caleidoscopio
-        float seg = floor(3.0 + detail * 9.0);
-        float r = length(p), a = atan(p.y, p.x);
-        float s = 6.2831 / seg;
-        a = abs(mod(a, s) - s * 0.5);
-        vec2 k = vec2(cos(a), sin(a)) * r;
-        float n = fbm(k * 3.0 + vec2(t * 0.4, -t * 0.2) + dist * vec2(sin(t), cos(t)), 5.0);
-        col = hsv(hue + r * 0.3 + n * 0.2, sat, smoothstep(0.2, 0.9, n) * (0.55 + flash * 1.3));
-    } else if (u_scene < 3.5) {     // Espectro circular
-        float r = length(p), a = atan(p.y, p.x);
-        float x = abs(a) / 3.14159;
-        float nb = 16.0 + floor(detail * 48.0);
-        float e = bandAt(floor(x * nb) / nb);
-        float rad = 0.35 + e * 0.55;
-        float line = smoothstep(0.02, 0.0, abs(r - rad));
-        float fill = smoothstep(rad, rad - 0.02, r) * step(0.33, r) * (0.35 + 0.65 * e);
-        float gap = step(0.15, fract(x * nb));
-        col = hsv(hue + x * 0.3, sat, (fill * gap * 0.8 + line) * (0.6 + flash * 1.2));
-        col += hsv(hue + 0.5, sat * 0.7, 1.0) * flash * 0.5 * exp(-r * r * 8.0);
-        col += hsv(hue, sat, 0.15) * smoothstep(0.33, 0.0, r) * (0.5 + bandAt(0.0));
-    } else {                        // Ondas
-        float v = 0.0;
-        for (int i = 0; i < 8; i++) {
-            float fi = float(i);
-            float e = bandAt(fi / 7.0);
-            float y = p.y + (fi - 3.5) * 0.18;
-            float w = sin(p.x * (2.0 + detail * 8.0) + t * (1.0 + fi * 0.3) + fi) * (0.05 + 0.25 * dist) * (0.5 + e);
-            v += smoothstep(0.025, 0.0, abs(y - w)) * (0.4 + 0.6 * e);
-        }
-        col = hsv(hue + p.y * 0.2, sat, v * (0.6 + flash * 1.2));
+    float split = g * 0.02 * (0.4 + u_chaos);
+    if (split > 0.0008) {
+        col.r = scene(P + vec2(split, 0.0)).r;
+        col.g = scene(P).g;
+        col.b = scene(P - vec2(split, 0.0)).b;
+    } else {
+        col = scene(P);
     }
-    col = 1.0 - exp(-col * 1.8);    // evita blancos quemados
-    FRAG = vec4(col, 1.0);
+
+    // líneas de TV
+    col *= 1.0 - u_scan * 0.45 * step(0.5, fract(frag.y * 0.5));
+    // inversión en golpes fuertes (caos)
+    float inv = step(0.75, g) * step(0.35, u_chaos) * step(0.55, h11(u_seed * 3.3));
+    col = mix(col, vec3(1.0) - col, inv);
+    FRAG = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
 "#;
 
@@ -196,16 +297,42 @@ impl Renderer {
         }
     }
 
-    fn paint(&self, gl: &glow::Context, u: &Uniforms, size: [f32; 2]) {
+    fn paint(&self, gl: &glow::Context, u: &BandUniforms, size: [f32; 2]) {
         unsafe {
             gl.use_program(Some(self.program));
-            let loc = |name: &str| gl.get_uniform_location(self.program, name);
+            let p = self.program;
+            // los arreglos se buscan como "nombre" o "nombre[0]" según el driver
+            let loc = |name: &str| {
+                gl.get_uniform_location(p, name)
+                    .or_else(|| gl.get_uniform_location(p, &format!("{name}[0]")))
+            };
+            let f1 = |name: &str, v: f32| gl.uniform_1_f32(loc(name).as_ref(), v);
+            let fv = |name: &str, v: &[f32]| gl.uniform_1_f32_slice(loc(name).as_ref(), v);
             gl.uniform_2_f32(loc("u_res").as_ref(), size[0], size[1]);
-            gl.uniform_1_f32(loc("u_time").as_ref(), u.time);
-            gl.uniform_1_f32(loc("u_rot").as_ref(), u.rot);
-            gl.uniform_1_f32(loc("u_scene").as_ref(), u.scene);
-            gl.uniform_1_f32_slice(loc("u_p").as_ref().or(loc("u_p[0]").as_ref()), &u.params);
-            gl.uniform_1_f32_slice(loc("u_bands").as_ref().or(loc("u_bands[0]").as_ref()), &u.bands);
+            f1("u_time", u.time);
+            f1("u_seed", u.seed);
+            fv("u_on", &u.on);
+            fv("u_style", &u.style);
+            let cols: Vec<f32> = u.color.iter().flatten().copied().collect();
+            gl.uniform_3_f32_slice(loc("u_col").as_ref(), &cols);
+            fv("u_int", &u.intensity);
+            fv("u_size", &u.size);
+            fv("u_kick_age", &u.kick_age);
+            f1("u_snare_age", u.snare_age);
+            f1("u_snare_seed", u.snare_seed);
+            f1("u_hat_age", u.hat_age);
+            f1("u_hat_seed", u.hat_seed);
+            f1("u_hat_lvl", u.hat_level);
+            f1("u_bass", u.bass);
+            fv("u_bands", &u.bands);
+            f1("u_lead", u.lead);
+            fv("u_lead_y", &u.lead_y);
+            fv("u_lead_a", &u.lead_a);
+            fv("u_chroma", &u.chroma);
+            f1("u_glitch", u.glitch);
+            f1("u_chaos", u.chaos);
+            f1("u_scan", u.scanlines);
+            f1("u_grid", u.grid);
             gl.disable(glow::BLEND);
             gl.bind_vertex_array(Some(self.vao));
             gl.draw_arrays(glow::TRIANGLES, 0, 3);
@@ -224,7 +351,7 @@ impl Renderer {
 }
 
 /// Agrega el dibujo del visual en `rect`.
-pub fn paint(ui: &egui::Ui, rect: egui::Rect, renderer: &Arc<Mutex<Renderer>>, u: Uniforms) {
+pub fn paint(ui: &egui::Ui, rect: egui::Rect, renderer: &Arc<Mutex<Renderer>>, u: BandUniforms) {
     let renderer = renderer.clone();
     let cb = egui_glow::CallbackFn::new(move |info, painter| {
         let vp = info.viewport_in_pixels();
