@@ -5,17 +5,18 @@ minimalista y glitch. No hace falta TouchDesigner ni saber programar.
 
 | Instrumento | Estilos | Dónde |
 |---|---|---|
-| **Bombo** | Anillos que se expanden · Bloque que golpea | centro |
-| **Caja** | Cortes horizontales · Rayos | toda la pantalla |
-| **Hi-hat** | Chispas en cuadrícula · Estática | toda la pantalla |
-| **Bajo** | Onda · Barras | abajo |
-| **Melodía** | Línea · Escalera (la forma de la melodía, de izquierda a derecha) | medio |
-| **Armonía** | Teclas (12 notas) · Orbes | arriba / alrededor |
+| **Bombo** | Anillos que se expanden · Bloque que golpea · Mira | centro |
+| **Caja** | Cortes horizontales · Rayos · Píxeles | toda la pantalla |
+| **Hi-hat** | Chispas en cuadrícula · Estática · Glifos | toda la pantalla |
+| **Bajo** | Onda · Barras · Vúmetro | abajo |
+| **Melodía** | Línea · Escalera · Puntos (la forma de la melodía, de izquierda a derecha) | medio |
+| **Armonía** | Teclas (12 notas) · Orbes · Acorde (une las notas que suenan) | arriba / alrededor |
 
 Encima va el **glitch**: separación RGB, bloques desplazados, pixelado, líneas de TV e inversión.
 Se controla con *siempre* (permanente), *con golpes* (caja y bombo), *caos* y *líneas de TV*.
 
-Cada capa se enciende o apaga, y tiene color, estilo, brillo y tamaño. Hay 4 paletas (Neón,
+Cada capa se enciende o apaga, y tiene color, estilo, brillo, tamaño y **sensibilidad** (en bombo,
+caja y hi-hat cambia el umbral de detección; en las otras, la ganancia). Hay 4 paletas (Neón,
 Monocromo, Error, Ácido), una leyenda en pantalla y presets guardables (JSON en `presets/`).
 
 **Entradas**: lo que suena en la PC (Spotify, YouTube… en Windows, por defecto), micrófono o

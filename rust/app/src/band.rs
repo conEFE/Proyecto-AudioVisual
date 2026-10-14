@@ -6,18 +6,26 @@ use std::collections::VecDeque;
 use serde::{Deserialize, Serialize};
 
 /// Una capa por instrumento: (nombre, ayuda, estilos).
-pub const LAYERS: [(&str, &str, [&str; 2]); 6] = [
-    ("Bombo", "Golpes graves de la batería", ["Anillos", "Bloque"]),
-    ("Caja", "Golpes secos de la batería", ["Cortes", "Rayos"]),
-    ("Hi-hat", "Platillos y golpes agudos", ["Chispas", "Estática"]),
-    ("Bajo", "Notas graves sostenidas", ["Onda", "Barras"]),
+pub const LAYERS: [(&str, &str, [&str; 3]); 6] = [
+    ("Bombo", "Golpes graves de la batería", ["Anillos", "Bloque", "Mira"]),
+    ("Caja", "Golpes secos de la batería", ["Cortes", "Rayos", "Píxeles"]),
+    ("Hi-hat", "Platillos y golpes agudos", ["Chispas", "Estática", "Glifos"]),
+    ("Bajo", "Notas graves sostenidas", ["Onda", "Barras", "Vúmetro"]),
     (
         "Melodía",
         "Voz, guitarra, sintes: dibuja la forma de la melodía",
-        ["Línea", "Escalera"],
+        ["Línea", "Escalera", "Puntos"],
     ),
-    ("Armonía", "Las 12 notas: qué acorde suena", ["Teclas", "Orbes"]),
+    (
+        "Armonía",
+        "Las 12 notas: qué acorde suena",
+        ["Teclas", "Orbes", "Acorde"],
+    ),
 ];
+
+/// Las tres primeras capas son golpes (la sensibilidad cambia el umbral de detección);
+/// en las otras la sensibilidad es una ganancia.
+pub const DRUM_LAYERS: usize = 3;
 
 /// Paletas: un color por capa.
 pub const PALETTES: [(&str, [[f32; 3]; 6]); 4] = [
@@ -66,6 +74,13 @@ pub struct Layer {
     pub intensity: f32,
     /// 0..2: tamaño / grosor.
     pub size: f32,
+    /// 0..1 (0.5 = calibrado). Golpes: detectar más suaves. Otras capas: ganancia.
+    #[serde(default = "half")]
+    pub sensitivity: f32,
+}
+
+fn half() -> f32 {
+    0.5
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -99,6 +114,7 @@ impl Default for Preset {
                 color: colors[i],
                 intensity: 1.0,
                 size: 1.0,
+                sensitivity: 0.5,
             })
             .collect();
         Self {
@@ -130,7 +146,8 @@ impl Preset {
             self.layers.push(def.layers[self.layers.len()].clone());
         }
         for l in &mut self.layers {
-            l.style = l.style.min(1);
+            l.style = l.style.min(2);
+            l.sensitivity = l.sensitivity.clamp(0.0, 1.0);
         }
         self
     }
@@ -236,8 +253,9 @@ impl BandState {
             self.hat_hits += 1;
         }
 
+        let gain = |i: usize| 2f32.powf((preset.layers.get(i).map_or(0.5, |l| l.sensitivity) - 0.5) * 3.0);
         // historia de la melodía: ~1.6 s a la vista, de izquierda (antes) a derecha (ahora)
-        let lead = get("lead");
+        let lead = (get("lead") * gain(4)).min(1.0);
         let audible = get("lead/confidence") > 0.4 && lead > 0.08;
         if audible {
             let note = get("lead/note");
@@ -279,12 +297,13 @@ impl BandState {
             hat_age: self.hat_age,
             hat_seed: (self.hat_hits as f32 * 2.414) % 100.0,
             hat_level: get("drums/hihat_level"),
-            bass: get("bass"),
+            bass: (get("bass") * gain(3)).min(1.0),
             bands: BAND_KEYS.map(&get),
             lead,
             lead_y: [0.0; HISTORY],
             lead_a: [0.0; HISTORY],
-            chroma: NOTES.map(|n| get(&format!("chroma/{n}"))),
+            // sensibilidad de armonía: más alta = se encienden notas más débiles
+            chroma: NOTES.map(|n| get(&format!("chroma/{n}")).max(0.0).powf(1.0 / gain(5))),
             glitch,
             chaos: g.chaos,
             scanlines: g.scanlines,

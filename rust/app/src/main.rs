@@ -18,7 +18,7 @@ use std::time::Instant;
 use audiovisual::{Config, input};
 use eframe::egui;
 
-use band::{Activity, BandState, LAYERS, PALETTES, Preset};
+use band::{Activity, BandState, DRUM_LAYERS, LAYERS, PALETTES, Preset};
 use engine::{Engine, InputKind, OscTarget};
 use visuals::Renderer;
 
@@ -222,6 +222,9 @@ impl App {
                 self.index = sh.names.iter().enumerate().map(|(i, n)| (n.clone(), i)).collect();
             }
             sh.take(&mut self.values);
+            for (i, s) in sh.sensitivity.iter_mut().enumerate() {
+                *s = self.preset.layers[i].sensitivity;
+            }
             status = sh.status.clone();
             error = sh.error.clone();
         }
@@ -468,12 +471,45 @@ impl App {
                         .show_value(false),
                 );
             });
+            let help = if i < DRUM_LAYERS {
+                "Más a la derecha: detecta golpes más suaves. Más a la izquierda: sólo los fuertes."
+            } else {
+                "Más a la derecha: reacciona aunque suene bajito."
+            };
+            ui.horizontal(|ui| {
+                ui.add_space(24.0);
+                ui.add(
+                    egui::Slider::new(&mut layer.sensitivity, 0.0..=1.0)
+                        .text("sensibilidad")
+                        .show_value(false),
+                )
+                .on_hover_text(help);
+            });
         }
     }
 
     /// Leyenda abajo a la izquierda: qué color es cada instrumento y cuándo suena.
     fn legend(&self, ui: &egui::Ui, rect: egui::Rect) {
         let painter = ui.painter_at(rect);
+        // arriba a la derecha: pulso, tempo y nota
+        let note = if self.value("lead/pitch_hz") > 0.0 && self.activity[4] > 0.05 {
+            NOTE_NAMES[(self.value("lead/pitch_class") as usize).min(11)]
+        } else {
+            "--"
+        };
+        let beat = self.value("tempo/beat") > 0.5;
+        painter.text(
+            egui::pos2(rect.right() - 14.0, rect.top() + 14.0),
+            egui::Align2::RIGHT_TOP,
+            format!(
+                "{} {:>3.0} BPM  {:<4}",
+                if beat { "■" } else { "□" },
+                self.value("tempo/bpm"),
+                note
+            ),
+            egui::FontId::monospace(12.0),
+            egui::Color32::from_white_alpha(170),
+        );
         let font = egui::FontId::monospace(11.0);
         let mut x = rect.left() + 14.0;
         let y = rect.bottom() - 18.0;

@@ -36,7 +36,11 @@ pub struct Shared {
     pub status: String,
     pub error: Option<String>,
     pub finished: bool,
+    /// Sensibilidad de bombo, caja y hi-hat (0..1, 0.5 = calibrado). La escribe la ventana.
+    pub sensitivity: [f32; 3],
 }
+
+pub const DRUM_KEYS: [&str; 3] = ["drums/kick", "drums/snare", "drums/hihat"];
 
 impl Shared {
     /// Copia los valores actuales. Los golpes se mantienen hasta que alguien los lee.
@@ -68,7 +72,10 @@ pub struct Engine {
 
 impl Engine {
     pub fn start(kind: InputKind, osc: Option<OscTarget>, cfg: Config) -> Self {
-        let shared = Arc::new(Mutex::new(Shared::default()));
+        let shared = Arc::new(Mutex::new(Shared {
+            sensitivity: [0.5; 3],
+            ..Default::default()
+        }));
         let stop = Arc::new(AtomicBool::new(false));
         let (sh, st) = (shared.clone(), stop.clone());
         let handle = thread::spawn(move || {
@@ -139,7 +146,6 @@ fn run(
         InputKind::System => (input::system_audio_input()?, "Lo que suena en la PC".to_string()),
     };
     let ch = source.channels;
-    let hop = cfg.analysis.hop_size;
     let mut analyzer = LiveAnalyzer::new(source.sample_rate, &cfg);
     let mut sender = match &osc {
         Some(t) => Some(OscSender::new(&t.host, t.port, &cfg.osc.prefix, cfg.osc.send_fps)?),
@@ -153,8 +159,10 @@ fn run(
         s.error = None;
     }
 
+    let hop = analyzer.hop;
     let mut block = vec![0.0f32; hop * ch];
     let mut mono = vec![0.0f32; hop];
+    let mut sens = [0.5f32; 3];
     while !stop.load(Ordering::Acquire) {
         match source.try_read_block(&mut block) {
             Some(true) => {
@@ -166,7 +174,17 @@ fn run(
                     s.send(g, f);
                     let _ = s.flush(false);
                 }
-                shared.lock().unwrap().publish(&f.values, &f.pulse);
+                let wanted = {
+                    let mut sh = shared.lock().unwrap();
+                    sh.publish(&f.values, &f.pulse);
+                    sh.sensitivity
+                };
+                if wanted != sens {
+                    sens = wanted;
+                    for (k, s) in DRUM_KEYS.iter().zip(sens) {
+                        analyzer.set_sensitivity(k, s);
+                    }
+                }
             }
             Some(false) => {
                 shared.lock().unwrap().finished = true;
