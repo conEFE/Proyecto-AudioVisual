@@ -60,7 +60,6 @@ def main():
         return
 
     sr = audio["sample_rate"]
-    hop = cfg["analysis"]["hop_size"]
     device = args.device if args.device is not None else audio.get("device")
     if isinstance(device, str) and device.isdigit():
         device = int(device)
@@ -70,12 +69,13 @@ def main():
     if inputs:
         channels = max(channels, max(i["channel"] for i in inputs))
 
+    mix = LiveAnalyzer(sr, cfg)
+    hop = mix.hop  # escalado según la frecuencia de muestreo
     if args.file:
         source = audio_io.FileInput(args.file, sr, hop, playback=not args.no_playback, loop=args.loop)
     else:
         source = audio_io.LiveInput(sr, hop, channels=channels, device=device)
 
-    mix = LiveAnalyzer(sr, cfg)
     per_channel = [(i["name"], i["channel"] - 1, LiveAnalyzer(sr, cfg)) for i in inputs]
     sender = OscSender(args.host or osc["host"], args.port or osc["port"], osc.get("prefix", ""),
                        osc.get("send_fps", 60))

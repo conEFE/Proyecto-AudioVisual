@@ -184,6 +184,7 @@ dependencies = [
  "rosc",
  "rtrb",
  "serde",
+ "serde_json",
  "serde_yaml",
  "symphonia",
 ]

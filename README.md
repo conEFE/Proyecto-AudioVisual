@@ -86,20 +86,26 @@ Valores normalizados 0..1, salvo donde se indica. Se ajustan solos al volumen (a
 ## Cómo detecta los instrumentos
 
 Separar instrumentos con IA (por ejemplo Demucs) no funciona en tiempo real, así que en vivo se usan
-técnicas rápidas (cada bloque de ~12 ms se analiza en menos de 1 ms):
+técnicas rápidas (cada bloque de ~12 ms se analiza en menos de 1 ms en Rust):
 
 1. **Separación armónico/percusiva (HPSS)**: compara cada instante con los anteriores (lo sostenido
    es armónico) y cada frecuencia con sus vecinas (lo que golpea en todo el espectro es percusivo).
-2. **Batería**: golpes en la parte percusiva, por zona: bombo 40–120 Hz, caja 150–400 Hz *y* 2–6 kHz
-   a la vez, hi-hat 7–16 kHz.
+2. **Batería (bombo, caja, hi-hat)**: detectores **calibrados con datos** ([`tools/bench`](tools/bench/README.md)):
+   miran 15 zonas de frecuencia, cuánto sube el sonido y cuánto se sostiene. Los pesos están en
+   [`drum_model.json`](drum_model.json). La caja espera ~38 ms antes de decidir para no confundirse
+   con "bombo + hi-hat".
 3. **Bajo y melodía**: energía de la parte armónica en graves (bajo) y medios (voz/guitarra/sintes).
-4. **Nota**: suma de armónicos sobre la parte armónica.
+4. **Nota**: suma de 8 armónicos entre 150 y 1500 Hz, restando el "fondo" (acordes que vienen sonando).
 5. **Tempo**: autocorrelación de los golpes de los últimos segundos y un oscilador que se sincroniza
    con el bombo.
 
+Medido en canciones de prueba con la respuesta correcta conocida (F1, 1 = perfecto): bombo
+0,94–0,98, caja 0,84–0,90, hi-hat 0,92–0,93, nota de la melodía ~59 % del tiempo. Detalles y
+límites en [`tools/bench/README.md`](tools/bench/README.md).
+
 Es una aproximación: dos instrumentos en la misma zona de frecuencias (ej. guitarra y voz) se ven juntos
 como `lead`. Para separación exacta en vivo usa el **modo multicanal** (cada músico en su canal).
-Todos los rangos y sensibilidades se ajustan en [`config.yaml`](config.yaml).
+Rangos y sensibilidades se ajustan en [`config.yaml`](config.yaml).
 
 ## Estructura
 
@@ -115,6 +121,9 @@ visualizer/osc_out.py     envío OSC
 tools/osc_monitor.py      ver los mensajes OSC sin TouchDesigner
 touchdesigner/            guía y red de ejemplo para TouchDesigner
 tests/                    pruebas con señales sintéticas
+tools/bench/              banco de pruebas: canciones con respuesta correcta, calibración y medición
+drum_model.json           pesos de los detectores de batería (los genera tools/bench/train_drums.py)
+visualizer/drums.py       detector de batería calibrado (Python; en Rust: rust/src/drums.rs)
 ```
 
 ## Pruebas

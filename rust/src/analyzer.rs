@@ -18,6 +18,7 @@ use realfft::num_complex::Complex;
 use realfft::{RealFftPlanner, RealToComplex};
 
 use crate::config::{Config, InstrumentKind};
+use crate::drums::{DrumDetector, DrumModel};
 use crate::dsp::{AutoGain, Envelope, OnsetDetector, time_to_coef};
 
 pub const NOTE_NAMES: [&str; 12] = ["c", "cs", "d", "ds", "e", "f", "fs", "g", "gs", "a", "as", "b"];
@@ -67,6 +68,10 @@ struct BandState {
 
 struct InstState {
     kind: InstrumentKind,
+    /// nombre en el detector calibrado ("kick", "snare", "hihat"), si lo usa
+    drum: Option<String>,
+    pulse: f32,
+    pulse_decay: f32,
     ranges: Vec<Range>,
     combine_all: bool,
     onset: Option<OnsetDetector>,
@@ -121,8 +126,16 @@ pub struct LiveAnalyzer {
     median_tmp: Vec<f32>,
     perc_est: Vec<f32>,
     // pitch
-    score: Vec<f32>,
     comp: Vec<f32>,
+    best: Vec<f32>,
+    sal: Vec<f32>,
+    pitch_mag: Vec<f32>,
+    slow_mag: Vec<f32>,
+    slow_init: bool,
+    pitch_harmonics: usize,
+    pitch_bg: f32,
+    pitch_bg_a: f32,
+    drums: DrumDetector,
 
     bands: Vec<BandState>,
     insts: Vec<InstState>,
@@ -164,8 +177,11 @@ impl LiveAnalyzer {
     pub fn new(sample_rate: u32, cfg: &Config) -> Self {
         let a = &cfg.analysis;
         let sr = sample_rate as f32;
-        let hop = a.hop_size;
-        let win = a.window_size;
+        // hop y ventana están definidos a 44.1 kHz: se escalan para que cada bloque dure lo mismo
+        // a cualquier frecuencia de muestreo (los detectores calibrados dependen de eso)
+        let scale = sr / 44100.0;
+        let hop = ((a.hop_size as f32 * scale).round() as usize).max(1);
+        let win = 2 * ((a.window_size as f32 * scale / 2.0).round() as usize).max(1);
         let nfft = win * 2; // zero-padding: mejor resolución para la nota
         let fps = sr / hop as f32;
         let nbins = nfft / 2 + 1;
@@ -210,6 +226,9 @@ impl LiveAnalyzer {
         let s_percussive = f.slot("mix/percussive", false);
         let s_onset = f.slot("mix/onset", true);
 
+        let drum_model = DrumModel::builtin();
+        let drums = DrumDetector::new(&drum_model, &freqs, fps);
+        let drum_names: Vec<String> = drums.names().map(String::from).collect();
         let mut kick = None;
         let insts: Vec<InstState> = cfg
             .instruments
@@ -220,8 +239,15 @@ impl LiveAnalyzer {
                     kick = Some(i);
                 }
                 let perc = spec.kind == InstrumentKind::Percussive;
+                let drum = name
+                    .strip_prefix("drums/")
+                    .filter(|d| perc && drum_names.iter().any(|n| n == d))
+                    .map(String::from);
                 InstState {
                     kind: spec.kind,
+                    drum,
+                    pulse: 0.0,
+                    pulse_decay: time_to_coef(spec.pulse_release, fps),
                     ranges: spec.ranges.iter().map(|r| bins(r[0], r[1])).collect(),
                     combine_all: spec.combine.as_deref() == Some("all"),
                     onset: perc.then(|| {
@@ -294,8 +320,16 @@ impl LiveAnalyzer {
             hist_pos: 0,
             median_tmp: vec![0.0; kernel.max(1)],
             perc_est: vec![0.0; nbins],
-            score: vec![0.0; nbins],
             comp: vec![0.0; nbins],
+            best: vec![0.0; nbins],
+            sal: vec![0.0; pitch_bins.len()],
+            pitch_mag: vec![0.0; nbins],
+            slow_mag: vec![0.0; nbins],
+            slow_init: false,
+            pitch_harmonics: p.harmonics.max(1),
+            pitch_bg: p.background_subtract,
+            pitch_bg_a: (-1.0 / (p.background_seconds * fps)).exp(),
+            drums,
             bands,
             insts,
             kick,
@@ -421,6 +455,8 @@ impl LiveAnalyzer {
             .perc_env
             .process(self.perc_gain.process(mean_sq(&self.perc).sqrt()));
 
+        self.drums.process(&self.perc, &self.mag);
+
         // flujo espectral (cuánto subió cada frecuencia desde el bloque anterior)
         let mut flux_all = 0.0;
         for i in 0..self.mag.len() {
@@ -450,7 +486,14 @@ impl LiveAnalyzer {
                         sum / inst.ranges.len() as f32
                     };
                     drum_flux += flux;
-                    vals[inst.slot] = inst.onset.as_mut().unwrap().process(flux);
+                    let onset = inst.onset.as_mut().unwrap();
+                    vals[inst.slot] = onset.process(flux);
+                    if let Some(d) = &inst.drum {
+                        let hit = self.drums.triggered(d);
+                        onset.triggered = hit;
+                        inst.pulse = if hit { 1.0 } else { inst.pulse * inst.pulse_decay };
+                        vals[inst.slot] = inst.pulse;
+                    }
                     let energy: f32 = inst.ranges.iter().map(|r| mean_sq(&self.perc[r.clone()]).sqrt()).sum();
                     vals[inst.level_slot.unwrap()] = inst.env.process(inst.gain.process(energy));
                 }
@@ -463,7 +506,7 @@ impl LiveAnalyzer {
         std::mem::swap(&mut self.prev_mag, &mut self.mag);
         std::mem::swap(&mut self.prev_perc, &mut self.perc);
 
-        // --- Nota de la melodía (espectro armónico, suma de armónicos) ---
+        // --- Nota de la melodía (suma de armónicos sobre el espectro sin el "fondo") ---
         self.pitch();
 
         // --- Tempo y pulso ---
@@ -482,41 +525,65 @@ impl LiveAnalyzer {
         &self.features
     }
 
-    fn pitch(&mut self) {
-        let harm = &self.harm;
-        let n = harm.len();
-        for (c, h) in self.comp.iter_mut().zip(harm) {
-            *c = h.sqrt();
+    /// Sensibilidad 0..1 de un golpe (`drums/kick`, `drums/snare`, `drums/hihat`). 0.5 = calibrado.
+    pub fn set_sensitivity(&mut self, name: &str, s: f32) {
+        if let Some(d) = name.strip_prefix("drums/") {
+            self.drums.set_sensitivity(d, s);
         }
-        self.score.copy_from_slice(&self.comp);
-        for h in 2..=4usize {
-            let len = n.div_ceil(h);
-            for i in 0..len {
-                self.score[i] += self.comp[i * h] / h as f32;
+    }
+
+    fn pitch(&mut self) {
+        // el espectro actual quedó en prev_mag tras el intercambio
+        let n = self.prev_mag.len();
+        // restar el "fondo" (lo que viene sonando hace ~1 s, como los acordes) resalta la melodía
+        if !self.slow_init {
+            self.pitch_mag.copy_from_slice(&self.prev_mag);
+            self.slow_mag.copy_from_slice(&self.prev_mag);
+            self.slow_init = true;
+        } else {
+            let (a, bg) = (self.pitch_bg_a, self.pitch_bg);
+            for i in 0..n {
+                let m = self.prev_mag[i];
+                let slow = self.slow_mag[i];
+                self.pitch_mag[i] = if bg > 0.0 { (m - bg * slow).max(0.0) } else { m };
+                self.slow_mag[i] = a * slow + (1.0 - a) * m;
             }
         }
+        let mag = &self.pitch_mag;
+        for (c, m) in self.comp.iter_mut().zip(mag) {
+            *c = m.sqrt();
+        }
+        for i in 0..n {
+            let l = self.comp[if i == 0 { n - 1 } else { i - 1 }];
+            let r = self.comp[if i + 1 == n { 0 } else { i + 1 }];
+            self.best[i] = self.comp[i].max(l).max(r);
+        }
+        // prominencia: suma de armónicos con peso decreciente
         let r = self.pitch_bins.clone();
-        let (mut idx, mut peak) = (0usize, 0.0f32);
-        for i in r.clone() {
-            if self.score[i] > peak {
-                peak = self.score[i];
-                idx = i;
+        let last = n - 2;
+        for (j, cand) in r.clone().enumerate() {
+            let mut v = 0.0;
+            for h in 1..=self.pitch_harmonics {
+                v += self.best[(cand * h).min(last)] * (h as f32).powf(-0.8);
+            }
+            self.sal[j] = v;
+        }
+        let (mut jbest, mut peak) = (0usize, 0.0f32);
+        for (j, &v) in self.sal.iter().enumerate() {
+            if v > peak {
+                peak = v;
+                jbest = j;
             }
         }
         let mut conf = 0.0;
-        if peak > 0.0 {
-            let mean = self.score[r.clone()].iter().sum::<f32>() / r.len() as f32;
+        if peak > 0.0 && !self.sal.is_empty() {
+            let mean = self.sal.iter().sum::<f32>() / self.sal.len() as f32;
             conf = 1.0 - mean / peak;
         }
-        if conf >= self.pitch_conf_min && idx > 0 && idx < n - 1 {
-            // interpolación parabólica sobre el espectro original
-            let a = (harm[idx - 1] + 1e-12).ln();
-            let b = (harm[idx] + 1e-12).ln();
-            let c = (harm[idx + 1] + 1e-12).ln();
-            let d = a - 2.0 * b + c;
-            let shift = if d != 0.0 { 0.5 * (a - c) / d } else { 0.0 };
-            self.pitch_hz = (idx as f32 + shift.clamp(-0.5, 0.5)) * self.sr / self.nfft as f32;
+        if conf >= self.pitch_conf_min && !self.sal.is_empty() {
+            self.pitch_hz = self.refine_f0(r.start + jbest);
         }
+        let harm = &self.harm;
         let s = &self.s;
         let vals = &mut self.features.values;
         vals[s.pitch_hz] = self.pitch_hz;
@@ -544,6 +611,42 @@ impl LiveAnalyzer {
         for i in 0..12 {
             vals[s.chroma[i]] = self.chroma_env[i].process(self.chroma[i] / max);
         }
+    }
+
+    /// Afina la nota con la posición exacta de cada armónico (mucho más preciso que un solo bin).
+    fn refine_f0(&self, cand: usize) -> f32 {
+        let mag = &self.pitch_mag;
+        let last = mag.len() - 2;
+        let (mut num, mut den) = (0.0f32, 0.0f32);
+        for h in 1..=self.pitch_harmonics {
+            let b = cand * h;
+            if b >= last {
+                break;
+            }
+            let mut k = b - 1;
+            for c in b..=b + 1 {
+                if mag[c] > mag[k] {
+                    k = c;
+                }
+            }
+            if k == 0 || k > last {
+                continue;
+            }
+            let a = (mag[k - 1] + 1e-12).ln();
+            let c0 = (mag[k] + 1e-12).ln();
+            let c = (mag[k + 1] + 1e-12).ln();
+            let d = a - 2.0 * c0 + c;
+            let shift = if d != 0.0 {
+                (0.5 * (a - c) / d).clamp(-0.5, 0.5)
+            } else {
+                0.0
+            };
+            let w = self.comp[k] * (h as f32).powf(-0.8);
+            num += w * (k as f32 + shift) / h as f32;
+            den += w;
+        }
+        let bin0 = if den > 0.0 { num / den } else { cand as f32 };
+        bin0 * self.sr / self.nfft as f32
     }
 
     fn update_tempo(&mut self) {

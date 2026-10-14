@@ -2,6 +2,7 @@
 
 pub mod analyzer;
 pub mod config;
+pub mod drums;
 pub mod dsp;
 pub mod input;
 pub mod osc;

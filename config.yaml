@@ -37,6 +37,8 @@ bands:
 
 # Detectores aproximados. "percussive" = golpes (pulso 0..1 + nivel),
 # "harmonic" = sonido sostenido (nivel 0..1).
+# Bombo, caja y hi-hat usan los detectores calibrados de drum_model.json (ver tools/bench);
+# sensitivity/min_flux/combine sólo se usan si ese archivo no está. ranges define el nivel (_level).
 # min_flux: umbral mínimo absoluto del golpe (súbelo si hay falsos golpes con ruido de fondo).
 # combine: all = todas las zonas de frecuencia deben golpear a la vez.
 instruments:
@@ -47,9 +49,12 @@ instruments:
   lead:        {type: harmonic,   ranges: [[250, 4000]]}
 
 pitch:
-  min_hz: 80
-  max_hz: 1200
-  min_confidence: 0.6
+  min_hz: 150        # rango de la melodía (debajo está el bajo)
+  max_hz: 1500
+  harmonics: 8
+  min_confidence: 0.3
+  background_subtract: 0.9   # resta lo que viene sonando (acordes) para resaltar la melodía
+  background_seconds: 1.0
 
 tempo:
   min_bpm: 70

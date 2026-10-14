@@ -119,6 +119,22 @@ pub struct PitchCfg {
     pub min_hz: f32,
     pub max_hz: f32,
     pub min_confidence: f32,
+    #[serde(default = "d_harmonics")]
+    pub harmonics: usize,
+    #[serde(default = "d_bg_subtract")]
+    pub background_subtract: f32,
+    #[serde(default = "d_bg_seconds")]
+    pub background_seconds: f32,
+}
+
+fn d_harmonics() -> usize {
+    8
+}
+fn d_bg_subtract() -> f32 {
+    0.9
+}
+fn d_bg_seconds() -> f32 {
+    1.0
 }
 
 #[derive(Debug, Clone, Deserialize)]

@@ -16,6 +16,7 @@ from collections import deque
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
 
+from .drums import DrumDetector, load_model
 from .dsp import AutoGain, Envelope, OnsetDetector
 
 NOTE_NAMES = ["c", "cs", "d", "ds", "e", "f", "fs", "g", "gs", "a", "as", "b"]
@@ -25,8 +26,11 @@ class LiveAnalyzer:
     def __init__(self, sample_rate: int, config: dict):
         a = config["analysis"]
         self.sr = sample_rate
-        self.hop = a["hop_size"]
-        self.win = a["window_size"]
+        # hop y ventana están definidos a 44.1 kHz: se escalan para que cada bloque dure lo mismo
+        # a cualquier frecuencia de muestreo (los detectores calibrados dependen de eso)
+        scale = sample_rate / 44100.0
+        self.hop = max(1, int(round(a["hop_size"] * scale)))
+        self.win = 2 * int(round(a["window_size"] * scale / 2))
         self.nfft = self.win * 2  # zero-padding: mejor resolución para la nota
         self.fps = self.sr / self.hop
         self.window = np.hanning(self.win).astype(np.float32)
@@ -62,6 +66,18 @@ class LiveAnalyzer:
                                 min_flux=spec.get("min_flux", 0.05))
             for name, spec in self.inst_cfg.items() if spec["type"] == "percussive"
         }
+        # detector calibrado para bombo, caja y hi-hat (si existe drum_model.json)
+        self.drums = None
+        self.drum_keys = {}
+        try:
+            model = load_model()
+            self.drums = DrumDetector(model, self.freqs, self.fps)
+            self.drum_keys = {f"drums/{k}": k for k in model["models"] if f"drums/{k}" in self.onsets}
+        except FileNotFoundError:
+            pass
+        self.drum_pulse = {name: 0.0 for name in self.drum_keys}
+        self.drum_decay = {name: Envelope(0.0, self.inst_cfg[name].get("pulse_release", 0.15), self.fps).r
+                           for name in self.drum_keys}
         self.inst_env = {name: env() for name in self.inst_cfg}
         # claves que son pulsos (golpes): el emisor OSC no debe perderlas
         self.pulse_keys = set(self.onsets) | {"mix/onset", "tempo/beat"}
@@ -78,6 +94,14 @@ class LiveAnalyzer:
         p = config["pitch"]
         self.pitch_mask = self._mask(p["min_hz"], p["max_hz"])
         self.pitch_conf_min = p["min_confidence"]
+        self.pitch_harmonics = p.get("harmonics", 8)
+        # restar el "fondo" (lo que viene sonando hace ~1 s, como los acordes) resalta la melodía
+        self.pitch_bg = p.get("background_subtract", 0.9)
+        self.pitch_bg_a = float(np.exp(-1.0 / (p.get("background_seconds", 1.0) * self.fps)))
+        self.slow_mag = None
+        self.pitch_cand = np.where(self.pitch_mask)[0]
+        last = len(self.freqs) - 2
+        self.pitch_idx = [np.minimum(self.pitch_cand * h, last) for h in range(1, self.pitch_harmonics + 1)]
         self.pitch_hz = 0.0
         self.chroma_env = [env() for _ in range(12)]
         self.chroma_mask = self._mask(p["min_hz"], 5000)
@@ -141,6 +165,8 @@ class LiveAnalyzer:
         out["mix/harmonic"] = self.harm_env(self.harm_gain(float(np.sqrt((harm ** 2).mean()))))
         out["mix/percussive"] = self.perc_env(self.perc_gain(float(np.sqrt((perc ** 2).mean()))))
 
+        if self.drums is not None:
+            self.drums.process(perc, mag)
         flux_all = np.maximum(mag - self.prev_mag, 0.0)
         flux_perc = np.maximum(perc - self.prev_perc, 0.0)
         self.prev_mag, self.prev_perc = mag, perc
@@ -157,6 +183,11 @@ class LiveAnalyzer:
                 flux = min(fluxes) if spec.get("combine") == "all" else sum(fluxes) / len(fluxes)
                 drum_flux += flux
                 out[f"{name}"] = self.onsets[name](flux)
+                if name in self.drum_keys:
+                    hit = self.drums.triggered[self.drum_keys[name]]
+                    self.onsets[name].triggered = hit
+                    self.drum_pulse[name] = 1.0 if hit else self.drum_pulse[name] * self.drum_decay[name]
+                    out[f"{name}"] = self.drum_pulse[name]
                 energy = sum(float(np.sqrt((perc[m] ** 2).mean())) for m in masks)
                 out[f"{name}_level"] = self.inst_env[name](self.inst_gain[name](energy))
             else:
@@ -164,7 +195,7 @@ class LiveAnalyzer:
                 out[f"{name}"] = self.inst_env[name](self.inst_gain[name](energy))
 
         # --- Nota de la melodía (espectro armónico, suma de armónicos) ---
-        out.update(self._pitch(harm))
+        out.update(self._pitch(harm, mag))
 
         # --- Tempo y pulso ---
         self.onset_env_hist.append(drum_flux)
@@ -174,27 +205,31 @@ class LiveAnalyzer:
         out.update(self._beat(kick_hit or any_hit))
         return out
 
-    def _pitch(self, harm: np.ndarray) -> dict:
-        spec = harm
-        # suma de armónicos ponderada (funciona con tonos puros y con instrumentos reales)
-        comp = np.sqrt(spec)
-        score = comp.copy()
-        for h in (2, 3, 4):
-            dec = comp[::h]
-            score[: len(dec)] += dec / h
-        hps = np.where(self.pitch_mask, score, 0.0)
+    def set_sensitivity(self, name: str, s: float):
+        """Sensibilidad 0..1 de un golpe (`drums/kick`, `drums/snare`, `drums/hihat`). 0.5 = calibrado."""
+        if name in self.drum_keys:
+            self.drums.set_sensitivity(self.drum_keys[name], s)
+
+    def _pitch(self, harm: np.ndarray, mag: np.ndarray) -> dict:
+        bg = self.slow_mag
+        self.slow_mag = mag.copy() if bg is None else self.pitch_bg_a * bg + (1.0 - self.pitch_bg_a) * mag
+        if bg is not None and self.pitch_bg > 0:
+            mag = np.maximum(mag - self.pitch_bg * bg, 0.0)
+        # prominencia por suma de armónicos (8, con peso decreciente) sobre el espectro completo:
+        # la nota que más "explica" lo que suena entre 150 y 1500 Hz
+        comp = np.sqrt(mag)
+        best = np.maximum(comp, np.maximum(np.roll(comp, 1), np.roll(comp, -1)))
+        sal = np.zeros(len(self.pitch_cand))
+        for h, idx in enumerate(self.pitch_idx, start=1):
+            sal += best[idx] * h ** -0.8
         out = {}
-        idx = int(np.argmax(hps))
-        peak = hps[idx]
         conf = 0.0
+        j = int(np.argmax(sal)) if len(sal) else 0
+        peak = sal[j] if len(sal) else 0.0
         if peak > 0:
-            band = hps[self.pitch_mask]
-            conf = float(1.0 - np.mean(band) / peak)
-        if conf >= self.pitch_conf_min and 0 < idx < len(spec) - 1:
-            # interpolación parabólica sobre el espectro original
-            a, b, c = np.log(spec[idx - 1:idx + 2] + 1e-12)
-            shift = 0.5 * (a - c) / (a - 2 * b + c) if (a - 2 * b + c) != 0 else 0.0
-            self.pitch_hz = float((idx + np.clip(shift, -0.5, 0.5)) * self.sr / self.nfft)
+            conf = float(1.0 - np.mean(sal) / peak)
+        if conf >= self.pitch_conf_min and len(sal):
+            self.pitch_hz = self._refine_f0(int(self.pitch_cand[j]), mag, comp)
         out["lead/pitch_hz"] = self.pitch_hz
         midi = 69 + 12 * np.log2(self.pitch_hz / 440.0) if self.pitch_hz > 0 else 0.0
         out["lead/note"] = float(midi)
@@ -209,6 +244,26 @@ class LiveAnalyzer:
         for i, name in enumerate(NOTE_NAMES):
             out[f"chroma/{name}"] = self.chroma_env[i](float(chroma[i]))
         return out
+
+    def _refine_f0(self, cand: int, mag: np.ndarray, comp: np.ndarray) -> float:
+        """Afina la nota con la posición exacta de cada armónico (mucho más preciso que un solo bin)."""
+        num = den = 0.0
+        last = len(mag) - 2
+        for h in range(1, self.pitch_harmonics + 1):
+            b = cand * h
+            if b >= last:
+                break
+            k = b - 1 + int(np.argmax(mag[b - 1:b + 2]))
+            if not 0 < k < last + 1:
+                continue
+            a, c0, c = np.log(mag[k - 1:k + 2] + 1e-12)
+            d = a - 2 * c0 + c
+            shift = float(np.clip(0.5 * (a - c) / d, -0.5, 0.5)) if d != 0 else 0.0
+            w = comp[k] * h ** -0.8
+            num += w * (k + shift) / h
+            den += w
+        bin0 = num / den if den > 0 else float(cand)
+        return float(bin0 * self.sr / self.nfft)
 
     def _update_tempo(self):
         x = np.asarray(self.onset_env_hist)
