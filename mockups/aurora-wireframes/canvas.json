@@ -1,0 +1,29 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-11-03T13:00:00Z"},
+  "title": "Aurora — Wireframes (baja fidelidad)",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 1280, "h": 800, "title": "01 · Login"},
+    "Inicio.dc.html": {"x": 1360, "y": 0, "w": 1280, "h": 800, "title": "02 · Inicio"},
+    "Cola.dc.html": {"x": 2720, "y": 0, "w": 1280, "h": 800, "title": "03 · Cola de triage"},
+    "Casos.dc.html": {"x": 0, "y": 1220, "w": 1280, "h": 1000, "title": "04 · Casos (lista + detalle)"},
+    "NuevoCaso.dc.html": {"x": 1360, "y": 1220, "w": 1280, "h": 800, "title": "05 · Nuevo caso + Paciente"},
+    "Imagenes.dc.html": {"x": 2720, "y": 1220, "w": 1280, "h": 800, "title": "06 · Carga de imágenes"},
+    "Dashboard.dc.html": {"x": 0, "y": 2640, "w": 1280, "h": 800, "title": "07 · Dashboard"},
+    "Parametros.dc.html": {"x": 1360, "y": 2640, "w": 1280, "h": 800, "title": "08 · Parámetros de triage"},
+    "Admin.dc.html": {"x": 2720, "y": 2640, "w": 1280, "h": 800, "title": "09 · Administración"}
+  },
+  "order": ["Main.dc.html", "Inicio.dc.html", "Cola.dc.html", "Casos.dc.html", "NuevoCaso.dc.html", "Imagenes.dc.html", "Dashboard.dc.html", "Parametros.dc.html", "Admin.dc.html"],
+  "notes": {
+    "t1": {"x": 0, "y": -300, "text": "Entrada", "kind": "title1", "maxW": 4000},
+    "t2": {"x": 0, "y": 920, "text": "Trabajo clínico", "kind": "title1", "maxW": 4000},
+    "t3": {"x": 0, "y": 2340, "text": "Gestión", "kind": "title1", "maxW": 4000},
+    "n1": {"x": 4080, "y": 0, "w": 420, "fill": "gray", "size": "m", "text": "Cómo leer estos bocetos\n\n▢ con X = imagen\nBarras grises = texto\nCaja negra = botón principal\n\nSolo estructura: sin colores ni datos reales."},
+    "n2": {"x": 4080, "y": 620, "w": 420, "fill": "blue", "size": "m", "text": "Login → Inicio (Médico / Administrativo)\nLogin → Administración (Admin)"},
+    "n3": {"x": 4080, "y": 1220, "w": 420, "fill": "orange", "size": "m", "text": "Menú por rol\n\nMédico: Inicio · Cola · Casos · Imágenes · Dashboard · Parámetros\nAdministrativo: Inicio · Cola · Casos · Imágenes · Dashboard\nAdmin: Dashboard · Parámetros · Administración"},
+    "n4": {"x": 4080, "y": 1880, "w": 420, "fill": "green", "size": "m", "text": "Estados de un caso\nAbierto → Priorizado → En revisión → Cerrado"}
+  },
+  "designSystems": []
+}

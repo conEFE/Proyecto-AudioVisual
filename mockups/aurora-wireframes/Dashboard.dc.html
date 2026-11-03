@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Wireframe · Dashboard</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#333}a:hover{color:#000}
+.wf{width:1280px;height:800px;box-sizing:border-box;background:#fafaf7;color:#333;font-family:Kalam,cursive;display:flex;flex-direction:column;overflow:hidden}
+.top{height:56px;flex-shrink:0;border-bottom:2px solid #333;display:flex;align-items:center;gap:12px;padding:0 28px}
+.logo{width:30px;height:30px;border:2px solid #333;border-radius:6px}
+.nav{display:flex;gap:8px;padding:10px 28px;border-bottom:2px dashed #999;flex-shrink:0}
+.tab{padding:2px 14px;border:2px solid #333;border-radius:6px;font-size:16px;text-decoration:none}
+.on{background:#333;color:#fafaf7}
+.body{flex:1;padding:18px 28px;display:flex;flex-direction:column;gap:12px;min-height:0}
+.box{border:2px solid #333;border-radius:8px;padding:12px 14px;box-sizing:border-box;display:flex;flex-direction:column;gap:8px}
+.ln{height:10px;background:#ccc;border-radius:5px}
+.in{height:30px;width:170px;border:2px solid #333;border-radius:6px;box-sizing:border-box}
+.lb{font-size:15px}
+.h3{font-size:18px;font-weight:700}
+.big{font-size:30px;font-weight:700;line-height:1}
+.mini{border:2px dashed #999;border-radius:6px;padding:6px;text-align:center;font-size:14px}
+</style>
+</helmet>
+<div class="wf">
+  <div class="top"><div class="logo"></div><span style="font-size: 20px; font-weight: 700;">Proyecto Aurora</span><span style="margin-left: auto; font-size: 16px;">Usuario · Rol</span><span class="tab">Salir</span></div>
+  <div class="nav"><a class="tab" href="Inicio.dc.html">Inicio</a><a class="tab" href="Cola.dc.html">Cola</a><a class="tab" href="Casos.dc.html">Casos</a><a class="tab" href="Imagenes.dc.html">Imágenes</a><a class="tab on" href="Dashboard.dc.html">Dashboard</a><a class="tab" href="Parametros.dc.html">Parámetros</a></div>
+  <div class="body">
+    <div style="display: flex; align-items: flex-end; gap: 16px;">
+      <p style="margin: 0; font-size: 28px; font-weight: 700; margin-right: auto;">Dashboard</p>
+      <div style="display: flex; flex-direction: column; gap: 2px;"><span class="lb">Desde</span><div class="in"></div></div>
+      <div style="display: flex; flex-direction: column; gap: 2px;"><span class="lb">Hasta</span><div class="in"></div></div>
+      <div style="display: flex; flex-direction: column; gap: 2px;"><span class="lb">ALTA pendiente &gt; (h)</span><div class="in"></div></div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;">
+      <div class="box"><span class="big">##</span><span class="lb">Casos en el período</span></div>
+      <div class="box"><span class="big">## min</span><span class="lb">Creación → triage</span></div>
+      <div class="box"><span class="big">##</span><span class="lb">ALTA pendientes</span></div>
+      <div class="box"><span class="big">## ms</span><span class="lb">Tiempo de respuesta API</span></div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+      <div class="box">
+        <span class="h3">Casos por nivel</span>
+        <div style="display: flex; align-items: center; gap: 8px;"><span class="lb" style="width: 56px;">ALTA</span><div style="height: 16px; width: 45%; border: 2px solid #333; background: #999; border-radius: 3px;"></div></div>
+        <div style="display: flex; align-items: center; gap: 8px;"><span class="lb" style="width: 56px;">MEDIA</span><div style="height: 16px; width: 80%; border: 2px solid #333; background: #bbb; border-radius: 3px;"></div></div>
+        <div style="display: flex; align-items: center; gap: 8px;"><span class="lb" style="width: 56px;">BAJA</span><div style="height: 16px; width: 55%; border: 2px solid #333; background: #ddd; border-radius: 3px;"></div></div>
+      </div>
+      <div class="box">
+        <span class="h3">Casos por semana</span>
+        <svg role="img" aria-label="Gráfico de línea (boceto)" viewBox="0 0 500 110" style="width: 100%; height: 110px;">
+          <line x1="10" y1="100" x2="490" y2="100" stroke="#333" stroke-width="2"></line>
+          <line x1="10" y1="5" x2="10" y2="100" stroke="#333" stroke-width="2"></line>
+          <polyline points="20,80 90,60 160,70 230,40 300,50 370,25 440,35 485,15" fill="none" stroke="#777" stroke-width="3" stroke-linejoin="round"></polyline>
+        </svg>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;">
+      <div class="box"><span class="h3">Triage → revisión</span><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px;"><div class="mini">## h<br>ALTA</div><div class="mini">## h<br>MEDIA</div><div class="mini">## h<br>BAJA</div></div></div>
+      <div class="box"><span class="h3">Overrides médicos</span><span class="big">##%</span><div class="ln" style="width: 80%;"></div></div>
+      <div class="box"><span class="h3">Concordancia IA–médico</span><span class="big">##%</span><div class="ln" style="width: 80%;"></div></div>
+      <div class="box"><span class="h3">Aprobación del triage</span><span class="big">##%</span><div class="ln" style="width: 80%;"></div></div>
+    </div>
+    <div class="box">
+      <span class="h3">Desempeño del modelo por versión (tabla)</span>
+      <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; font-size: 14px; font-weight: 700;"><span>Versión</span><span>Evaluables</span><span>Exactitud</span><span>Sensibilidad</span><span>Especificidad</span><span>Meta</span></div>
+      <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px;"><div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

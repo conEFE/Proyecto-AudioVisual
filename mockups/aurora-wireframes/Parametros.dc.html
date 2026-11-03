@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Wireframe · Parámetros de triage</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#333}a:hover{color:#000}
+.wf{width:1280px;height:800px;box-sizing:border-box;background:#fafaf7;color:#333;font-family:Kalam,cursive;display:flex;flex-direction:column;overflow:hidden}
+.top{height:56px;flex-shrink:0;border-bottom:2px solid #333;display:flex;align-items:center;gap:12px;padding:0 28px}
+.logo{width:30px;height:30px;border:2px solid #333;border-radius:6px}
+.nav{display:flex;gap:8px;padding:10px 28px;border-bottom:2px dashed #999;flex-shrink:0}
+.tab{padding:2px 14px;border:2px solid #333;border-radius:6px;font-size:16px;text-decoration:none}
+.on{background:#333;color:#fafaf7}
+.body{flex:1;padding:18px 28px;display:flex;flex-direction:column;gap:12px;min-height:0}
+.box{border:2px solid #333;border-radius:8px;padding:14px;box-sizing:border-box;display:flex;flex-direction:column;gap:8px}
+.ln{height:10px;background:#ccc;border-radius:5px}
+.in{height:30px;border:2px solid #333;border-radius:6px;box-sizing:border-box}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 16px;border:2px solid #333;border-radius:6px;font-size:16px;background:transparent;font-family:inherit;color:inherit}
+.pri{background:#333;color:#fafaf7}
+.lb{font-size:15px}
+.h3{font-size:19px;font-weight:700}
+.f{display:flex;flex-direction:column;gap:2px}
+</style>
+</helmet>
+<div class="wf">
+  <div class="top"><div class="logo"></div><span style="font-size: 20px; font-weight: 700;">Proyecto Aurora</span><span style="margin-left: auto; font-size: 16px;">Usuario · Rol</span><span class="tab">Salir</span></div>
+  <div class="nav"><a class="tab" href="Inicio.dc.html">Inicio</a><a class="tab" href="Cola.dc.html">Cola</a><a class="tab" href="Casos.dc.html">Casos</a><a class="tab" href="Imagenes.dc.html">Imágenes</a><a class="tab" href="Dashboard.dc.html">Dashboard</a><a class="tab on" href="Parametros.dc.html">Parámetros</a></div>
+  <div class="body">
+    <div style="display: flex; flex-direction: column; gap: 6px;"><p style="margin: 0; font-size: 28px; font-weight: 700;">Parámetros de triage</p><div class="ln" style="width: 480px;"></div></div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;">
+      <div class="box">
+        <span class="h3">Pesos del puntaje</span>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px;">
+          <div class="f"><span class="lb">IA</span><div class="in"></div></div>
+          <div class="f"><span class="lb">Edad</span><div class="in"></div></div>
+          <div class="f"><span class="lb">Antecedente familiar</span><div class="in"></div></div>
+          <div class="f"><span class="lb">Cáncer previo</span><div class="in"></div></div>
+          <div class="f"><span class="lb">Tiempo de espera</span><div class="in"></div></div>
+        </div>
+        <span class="h3" style="margin-top: 6px;">Umbrales</span>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;">
+          <div class="f"><span class="lb">ALTA si ≥</span><div class="in"></div></div>
+          <div class="f"><span class="lb">MEDIA si ≥</span><div class="in"></div></div>
+          <div class="f"><span class="lb">Días máx. espera</span><div class="in"></div></div>
+        </div>
+      </div>
+      <div class="box">
+        <span class="h3">Reglas de escalamiento a ALTA</span>
+        <span class="lb">BI-RADS que escala: ☐0 ☐3 ☐4 ☐5 ☐6</span>
+        <span class="lb">☐ Síntoma de alarma escala a ALTA</span>
+        <span class="h3" style="margin-top: 6px;">Bandas de edad</span>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+          <div class="f"><span class="lb">Banda alta: desde</span><div class="in"></div></div>
+          <div class="f"><span class="lb">hasta</span><div class="in"></div></div>
+        </div>
+        <div class="ln" style="width: 60%;"></div>
+      </div>
+    </div>
+    <div class="box">
+      <span class="lb">Motivo del cambio</span>
+      <div class="in" style="height: 50px;"></div>
+      <button type="button" class="btn pri" style="align-self: flex-start;">Guardar como nueva versión</button>
+    </div>
+    <div class="box">
+      <span class="h3">Historial de versiones</span>
+      <div style="display: flex; gap: 16px; align-items: center;"><span class="lb" style="width: 90px;"><b>v3</b> (activa)</span><div class="ln" style="flex: 1;"></div><div class="ln" style="width: 120px;"></div></div>
+      <div style="display: flex; gap: 16px; align-items: center;"><span class="lb" style="width: 90px;"><b>v2</b></span><div class="ln" style="flex: 1;"></div><div class="ln" style="width: 120px;"></div></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

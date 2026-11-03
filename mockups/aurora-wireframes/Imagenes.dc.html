@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Wireframe · Carga de imágenes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#333}a:hover{color:#000}
+.wf{width:1280px;height:800px;box-sizing:border-box;background:#fafaf7;color:#333;font-family:Kalam,cursive;display:flex;flex-direction:column;overflow:hidden}
+.top{height:56px;flex-shrink:0;border-bottom:2px solid #333;display:flex;align-items:center;gap:12px;padding:0 28px}
+.logo{width:30px;height:30px;border:2px solid #333;border-radius:6px}
+.nav{display:flex;gap:8px;padding:10px 28px;border-bottom:2px dashed #999;flex-shrink:0}
+.tab{padding:2px 14px;border:2px solid #333;border-radius:6px;font-size:16px;text-decoration:none}
+.on{background:#333;color:#fafaf7}
+.body{flex:1;padding:20px 28px;display:flex;flex-direction:column;gap:14px;min-height:0}
+.box{border:2px solid #333;border-radius:8px;padding:14px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px}
+.ln{height:10px;background:#ccc;border-radius:5px}
+.in{height:32px;border:2px solid #333;border-radius:6px;box-sizing:border-box}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:40px;padding:0 16px;border:2px solid #333;border-radius:6px;font-size:16px;background:transparent;font-family:inherit;color:inherit}
+.pri{background:#333;color:#fafaf7}
+.lb{font-size:15px}
+.img{position:relative;border:2px solid #333;border-radius:6px;overflow:hidden}
+.chip{display:inline-block;padding:0 10px;border:2px solid #333;border-radius:12px;font-size:14px}
+</style>
+</helmet>
+<div class="wf">
+  <div class="top"><div class="logo"></div><span style="font-size: 20px; font-weight: 700;">Proyecto Aurora</span><span style="margin-left: auto; font-size: 16px;">Usuario · Rol</span><span class="tab">Salir</span></div>
+  <div class="nav"><a class="tab" href="Inicio.dc.html">Inicio</a><a class="tab" href="Cola.dc.html">Cola</a><a class="tab" href="Casos.dc.html">Casos</a><a class="tab on" href="Imagenes.dc.html">Imágenes</a><a class="tab" href="Dashboard.dc.html">Dashboard</a><a class="tab" href="Parametros.dc.html">Parámetros</a></div>
+  <div class="body">
+    <div style="display: flex; flex-direction: column; gap: 6px;"><p style="margin: 0; font-size: 28px; font-weight: 700;">Carga de imágenes</p><div class="ln" style="width: 520px;"></div></div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; flex: 1; min-height: 0;">
+      <div class="box">
+        <span class="lb">Caso</span><div class="in"></div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+          <div style="display: flex; flex-direction: column; gap: 4px;"><span class="lb">Tipo de examen</span><div class="in"></div></div>
+          <div style="display: flex; flex-direction: column; gap: 4px;"><span class="lb">Lateralidad</span><div class="in"></div></div>
+        </div>
+        <div style="height: 110px; border: 2px dashed #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px;">⇪ Seleccionar imagen (PNG / JPEG)</div>
+        <div class="img" style="flex: 1;"><svg aria-hidden="true" width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 100 100" style="position: absolute; inset: 0;"><line x1="0" y1="0" x2="100" y2="100" stroke="#bbb" stroke-width="2" vector-effect="non-scaling-stroke"></line><line x1="100" y1="0" x2="0" y2="100" stroke="#bbb" stroke-width="2" vector-effect="non-scaling-stroke"></line></svg><span style="position: absolute; left: 10px; top: 6px; font-size: 15px;">Vista previa</span></div>
+        <div style="height: 12px; border: 2px solid #333; border-radius: 6px;"><div style="width: 60%; height: 100%; background: #999;"></div></div>
+        <button type="button" class="btn pri">Subir imagen</button>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="box" style="flex: 1;">
+          <span style="font-size: 19px; font-weight: 700;">Imágenes del caso</span>
+          <sc-for list="{{imgs}}" as="i" hint-placeholder-count="2">
+            <div style="display: flex; gap: 12px; border: 2px dashed #999; border-radius: 8px; padding: 10px;">
+              <div class="img" style="width: 140px; height: 110px; flex-shrink: 0;"><svg aria-hidden="true" width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 100 100" style="position: absolute; inset: 0;"><line x1="0" y1="0" x2="100" y2="100" stroke="#bbb" stroke-width="2" vector-effect="non-scaling-stroke"></line><line x1="100" y1="0" x2="0" y2="100" stroke="#bbb" stroke-width="2" vector-effect="non-scaling-stroke"></line></svg></div>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
+                <span class="lb">{{i.t}}</span>
+                <span><span class="chip">{{i.r}}</span> <span class="chip">IA SIMULADA</span></span>
+                <div class="ln" style="width: 80%;"></div>
+                <div class="ln" style="width: 55%;"></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="border: 2px dashed #333; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px;"><span class="lb"><b>! Aviso:</b> herramienta de apoyo, no reemplaza el criterio médico</span><div class="ln" style="width: 75%;"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() {
+  return { imgs: [{ t: 'Mamografía · Izquierda', r: 'Hallazgo · %' }, { t: 'Ecografía · Derecha', r: 'Sin hallazgos · %' }] };
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Wireframe · Nuevo caso y paciente</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#333}a:hover{color:#000}
+.wf{position:relative;width:1280px;height:800px;box-sizing:border-box;background:#fafaf7;color:#333;font-family:Kalam,cursive;display:flex;flex-direction:column;overflow:hidden}
+.top{height:56px;flex-shrink:0;border-bottom:2px solid #333;display:flex;align-items:center;gap:12px;padding:0 28px}
+.logo{width:30px;height:30px;border:2px solid #333;border-radius:6px}
+.nav{display:flex;gap:8px;padding:10px 28px;border-bottom:2px dashed #999;flex-shrink:0}
+.tab{padding:2px 14px;border:2px solid #333;border-radius:6px;font-size:16px;text-decoration:none}
+.on{background:#333;color:#fafaf7}
+.ln{height:10px;background:#ccc;border-radius:5px}
+.in{height:32px;border:2px solid #333;border-radius:6px;box-sizing:border-box}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 16px;border:2px solid #333;border-radius:6px;font-size:16px;background:transparent;font-family:inherit;color:inherit;text-decoration:none}
+.pri{background:#333;color:#fafaf7}
+.lb{font-size:15px}
+</style>
+</helmet>
+<div class="wf">
+  <div class="top"><div class="logo"></div><span style="font-size: 20px; font-weight: 700;">Proyecto Aurora</span><span style="margin-left: auto; font-size: 16px;">Usuario · Rol</span><span class="tab">Salir</span></div>
+  <div class="nav"><a class="tab" href="Inicio.dc.html">Inicio</a><a class="tab" href="Cola.dc.html">Cola</a><a class="tab on" href="Casos.dc.html">Casos</a><a class="tab" href="Imagenes.dc.html">Imágenes</a><a class="tab" href="Dashboard.dc.html">Dashboard</a></div>
+  <div style="flex: 1; display: flex; gap: 16px; padding: 20px 28px; opacity: 0.35;">
+    <div style="flex: 3; border: 2px dashed #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px;">Lista de casos</div>
+    <div style="flex: 2; border: 2px solid #333; border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+      <span style="font-size: 20px; font-weight: 700;">Nuevo caso</span>
+      <span class="lb">Paciente</span><div class="in"></div>
+      <span class="lb">Síntomas ☐ ☐ ☐</span>
+      <span class="lb">BI-RADS</span><div class="in"></div>
+      <span class="btn pri">Crear caso</span>
+    </div>
+  </div>
+  <div style="position: absolute; inset: 0; background: rgba(250,250,247,0.55); display: flex; align-items: center; justify-content: center;">
+    <div role="dialog" aria-label="Paciente" style="width: 560px; background: #fafaf7; border: 3px solid #333; border-radius: 10px; padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; box-shadow: 6px 6px 0 #333;">
+      <div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-size: 24px; font-weight: 700;">Paciente</span><button type="button" aria-label="Cerrar" class="btn" style="width: 38px; padding: 0;">×</button></div>
+      <div style="display: flex; gap: 8px;"><button type="button" class="btn" style="flex: 1;">Buscar existente</button><button type="button" class="btn pri" style="flex: 1;">Registrar nuevo</button></div>
+      <label for="m-rut" class="lb">RUT *</label><input id="m-rut" class="in" style="background: transparent;">
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+        <div style="display: flex; flex-direction: column; gap: 4px;"><span class="lb">Nombres *</span><div class="in"></div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px;"><span class="lb">Apellidos *</span><div class="in"></div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px;"><span class="lb">Fecha de nacimiento *</span><div class="in"></div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px;"><span class="lb">Sexo</span><div class="in"></div></div>
+      </div>
+      <span class="lb">Antecedentes: ☐ Familiar 1er grado ☐ Cáncer de mama previo</span>
+      <span class="lb">Historial / notas</span><div class="in" style="height: 56px;"></div>
+      <div style="border: 2px dashed #333; border-radius: 6px; padding: 8px; display: flex; gap: 8px; align-items: center;"><span class="lb">☐ <b>Consentimiento informado (obligatorio)</b></span></div>
+      <div style="display: flex; gap: 8px;"><button type="button" class="btn" style="flex: 1;">Cancelar</button><button type="button" class="btn pri" style="flex: 1;">Registrar paciente</button></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

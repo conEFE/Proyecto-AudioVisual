@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Wireframe · Inicio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#333}a:hover{color:#000}
+.wf{width:1280px;height:800px;box-sizing:border-box;background:#fafaf7;color:#333;font-family:Kalam,cursive;display:flex;flex-direction:column;overflow:hidden}
+.top{height:56px;flex-shrink:0;border-bottom:2px solid #333;display:flex;align-items:center;gap:12px;padding:0 28px}
+.logo{width:30px;height:30px;border:2px solid #333;border-radius:6px}
+.nav{display:flex;gap:8px;padding:10px 28px;border-bottom:2px dashed #999;flex-shrink:0}
+.tab{padding:2px 14px;border:2px solid #333;border-radius:6px;font-size:16px;text-decoration:none}
+.on{background:#333;color:#fafaf7}
+.body{flex:1;padding:24px 28px;display:flex;flex-direction:column;gap:16px;min-height:0}
+.box{border:2px solid #333;border-radius:8px;padding:14px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px}
+.ln{height:10px;background:#ccc;border-radius:5px}
+.img{position:relative;border:2px solid #333;border-radius:6px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:40px;padding:0 18px;border:2px solid #333;border-radius:6px;font-size:18px;background:transparent;font-family:inherit;color:inherit;text-decoration:none}
+.pri{background:#333;color:#fafaf7}
+</style>
+</helmet>
+<div class="wf">
+  <div class="top"><div class="logo"></div><span style="font-size: 20px; font-weight: 700;">Proyecto Aurora</span><span style="margin-left: auto; font-size: 16px;">Usuario · Rol</span><span class="tab">Salir</span></div>
+  <div class="nav"><a class="tab on" href="Inicio.dc.html">Inicio</a><a class="tab" href="Cola.dc.html">Cola</a><a class="tab" href="Casos.dc.html">Casos</a><a class="tab" href="Imagenes.dc.html">Imágenes</a><a class="tab" href="Dashboard.dc.html">Dashboard</a><a class="tab" href="Parametros.dc.html">Parámetros</a></div>
+  <div class="body">
+    <div style="display: flex; gap: 32px; height: 360px;">
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 14px;">
+        <p style="margin: 0; font-size: 30px; font-weight: 700;">Título de bienvenida</p>
+        <div class="ln" style="width: 95%;"></div>
+        <div class="ln" style="width: 85%;"></div>
+        <div class="ln" style="width: 60%;"></div>
+        <a class="btn pri" href="Cola.dc.html" style="align-self: flex-start; margin-top: 8px;">Ir a los casos →</a>
+      </div>
+      <div class="img" style="flex: 1;">
+        <svg aria-hidden="true" width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 100 100" style="position: absolute; inset: 0;"><line x1="0" y1="0" x2="100" y2="100" stroke="#bbb" stroke-width="2" vector-effect="non-scaling-stroke"></line><line x1="100" y1="0" x2="0" y2="100" stroke="#bbb" stroke-width="2" vector-effect="non-scaling-stroke"></line></svg>
+        <span style="position: relative; background: #fafaf7; padding: 0 8px;">Logo Aurora</span>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px;">
+      <div class="box"><div class="logo"></div><span style="font-size: 20px; font-weight: 700;">Priorización</span><div class="ln" style="width: 90%;"></div><div class="ln" style="width: 70%;"></div></div>
+      <div class="box"><div class="logo"></div><span style="font-size: 20px; font-weight: 700;">Datos protegidos</span><div class="ln" style="width: 90%;"></div><div class="ln" style="width: 70%;"></div></div>
+      <div class="box"><div class="logo"></div><span style="font-size: 20px; font-weight: 700;">El médico decide</span><div class="ln" style="width: 90%;"></div><div class="ln" style="width: 70%;"></div></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
