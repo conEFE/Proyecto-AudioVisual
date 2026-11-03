@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Aurora · Login</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#09090b}
+a{color:#a78bfa}a:hover{color:#c4b5fd}
+</style>
+</helmet>
+<div style="min-height: 800px; display: flex; flex-wrap: wrap; background: #09090b; color: #fafafa; font-family: Inter, system-ui, sans-serif;">
+  <div style="flex: 1 1 480px; display: flex; align-items: center; justify-content: center; padding: 48px 16px;">
+    <div style="width: 100%; max-width: 420px; background: #09090b; border: 1px solid #27272a; border-radius: 10px; padding: 28px; box-sizing: border-box;">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; margin-bottom: 24px;">
+        <div style="width: 48px; height: 48px; border-radius: 10px; background: #7c3aed; display: flex; align-items: center; justify-content: center;">
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+        </div>
+        <h2 style="margin: 8px 0 0; font-size: 20px; font-weight: 700;">Bienvenido</h2>
+        <p style="margin: 0; font-size: 13px; color: #a1a1aa;">Plataforma de Apoyo Diagnóstico Oncológico</p>
+      </div>
+      <form style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label for="rut" style="font-size: 13px; font-weight: 500;">RUT</label>
+          <input id="rut" placeholder="Ingrese su RUT" style="height: 40px; padding: 0 12px; background: #09090b; border: 1px solid #3f3f46; border-radius: 6px; color: #fafafa; font: inherit; font-size: 14px;">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label for="pass" style="font-size: 13px; font-weight: 500;">Contraseña</label>
+          <input id="pass" type="password" placeholder="••••••••" style="height: 40px; padding: 0 12px; background: #09090b; border: 1px solid #3f3f46; border-radius: 6px; color: #fafafa; font: inherit; font-size: 14px;">
+        </div>
+        <div style="padding: 8px 10px; border: 1px solid #7f1d1d; background: #2a0f12; color: #fecaca; border-radius: 6px; font-size: 12px;">Estado de error (si aplica): RUT o contraseña incorrectos</div>
+        <a href="Home.dc.html" style="display: flex; align-items: center; justify-content: center; height: 44px; border-radius: 6px; background: #7c3aed; color: #fff; font-size: 14px; font-weight: 600; text-decoration: none;">Iniciar Sesión Seguro</a>
+        <p style="margin: 0; text-align: center; font-size: 12px; color: #a1a1aa;">Las cuentas las crea el administrador de la plataforma.</p>
+      </form>
+      <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #27272a; text-align: center; font-size: 12px; color: #a1a1aa;">Conexión segura con encriptación SSL</div>
+    </div>
+  </div>
+  <div style="flex: 1 1 480px; display: flex; align-items: center; justify-content: center; padding: 48px 32px; background: #1a1230;">
+    <div style="max-width: 480px; display: flex; flex-direction: column; gap: 10px;">
+      <h1 style="margin: 0; font-size: 30px; font-weight: 700; line-height: 1.2;">Detección Temprana de Cáncer de Mama</h1>
+      <p style="margin: 0; font-size: 15px; color: #c4c4cc; line-height: 1.5;">Plataforma de apoyo a la detección temprana y priorización (triage) de casos sospechosos. Apoya, no reemplaza, el criterio médico.</p>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Aurora · Parámetros de triage</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#09090b}
+a{color:#a78bfa}a:hover{color:#c4b5fd}
+input,textarea{background:#09090b;border:1px solid #3f3f46;border-radius:6px;color:#fafafa;font:inherit;font-size:13px;box-sizing:border-box;width:100%}
+</style>
+</helmet>
+<div style="min-height: 1000px; display: flex; flex-direction: column; background: #09090b; color: #fafafa; font-family: Inter, system-ui, sans-serif;">
+  <dc-import name="Header" active="config" role="MEDICO" hint-size="100%,96px"></dc-import>
+  <main style="flex-grow: 1; width: 100%; max-width: 1280px; margin: 0 auto; padding: 24px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+    <div>
+      <h2 style="margin: 0; font-size: 20px; font-weight: 700;">Parámetros de triage</h2>
+      <p style="margin: 4px 0 0; font-size: 13px; color: #a1a1aa;">Pesos, umbrales y reglas que usa el motor de triage. Configuración activa: v3. Cada cambio crea una versión nueva y queda auditado.</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 16px; align-items: start;">
+      <section style="border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <h3 style="margin: 0; font-size: 14px; font-weight: 600;">Pesos del puntaje</h3>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+          <sc-for list="{{weights}}" as="w" hint-placeholder-count="5">
+            <div style="display: flex; flex-direction: column; gap: 4px;"><label for="{{w.id}}" style="font-size: 12px; font-weight: 500;">{{w.label}}</label><input id="{{w.id}}" type="number" value="{{w.v}}" style="height: 36px; padding: 0 8px;"></div>
+          </sc-for>
+        </div>
+        <p style="margin: 0; font-size: 12px; color: #a1a1aa;">Suma de pesos: <strong style="color: #fafafa;">100</strong> (debe ser 100).</p>
+        <h3 style="margin: 6px 0 0; font-size: 14px; font-weight: 600;">Umbrales</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+          <div style="display: flex; flex-direction: column; gap: 4px;"><label for="t-a" style="font-size: 12px; font-weight: 500;">ALTA si puntaje ≥</label><input id="t-a" type="number" value="60" style="height: 36px; padding: 0 8px;"></div>
+          <div style="display: flex; flex-direction: column; gap: 4px;"><label for="t-m" style="font-size: 12px; font-weight: 500;">MEDIA si puntaje ≥</label><input id="t-m" type="number" value="35" style="height: 36px; padding: 0 8px;"></div>
+          <div style="display: flex; flex-direction: column; gap: 4px;"><label for="t-w" style="font-size: 12px; font-weight: 500;">Días máx. de espera</label><input id="t-w" type="number" value="30" style="height: 36px; padding: 0 8px;"></div>
+        </div>
+      </section>
+      <section style="border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <h3 style="margin: 0; font-size: 14px; font-weight: 600;">Reglas de escalamiento directo a ALTA</h3>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <p style="margin: 0; font-size: 12px; font-weight: 500;">BI-RADS informado que escala</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+            <label style="display: flex; gap: 6px; align-items: center; font-size: 13px;"><input type="checkbox" style="width: auto; accent-color: #7c3aed;"> 0</label>
+            <label style="display: flex; gap: 6px; align-items: center; font-size: 13px;"><input type="checkbox" style="width: auto; accent-color: #7c3aed;"> 3</label>
+            <label style="display: flex; gap: 6px; align-items: center; font-size: 13px;"><input type="checkbox" checked style="width: auto; accent-color: #7c3aed;"> 4</label>
+            <label style="display: flex; gap: 6px; align-items: center; font-size: 13px;"><input type="checkbox" checked style="width: auto; accent-color: #7c3aed;"> 5</label>
+            <label style="display: flex; gap: 6px; align-items: center; font-size: 13px;"><input type="checkbox" checked style="width: auto; accent-color: #7c3aed;"> 6</label>
+          </div>
+        </div>
+        <label style="display: flex; gap: 8px; align-items: center; font-size: 13px;"><input type="checkbox" checked style="width: auto; accent-color: #7c3aed;"> Síntoma de alarma escala a ALTA</label>
+        <h3 style="margin: 6px 0 0; font-size: 14px; font-weight: 600;">Bandas de edad</h3>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+          <div style="display: flex; flex-direction: column; gap: 4px;"><label for="a-lo" style="font-size: 12px; font-weight: 500;">Banda alta (factor 1): desde</label><input id="a-lo" type="number" value="50" style="height: 36px; padding: 0 8px;"></div>
+          <div style="display: flex; flex-direction: column; gap: 4px;"><label for="a-hi" style="font-size: 12px; font-weight: 500;">hasta</label><input id="a-hi" type="number" value="69" style="height: 36px; padding: 0 8px;"></div>
+        </div>
+        <p style="margin: 0; font-size: 12px; color: #a1a1aa;">Bandas medias (factor 0,5): 40–49, 70–74 años.</p>
+      </section>
+    </div>
+    <section style="border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+      <label for="cfg-r" style="font-size: 12px; font-weight: 500;">Motivo del cambio</label>
+      <textarea id="cfg-r" rows="2" style="padding: 8px;"></textarea>
+      <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: #fca5a5;"><li>Indique el motivo del cambio (mín. 5 caracteres)</li></ul>
+      <button type="button" disabled style="align-self: flex-start; min-height: 40px; padding: 0 16px; background: #27272a; color: #71717a; border: 0; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 600;">Guardar como nueva versión</button>
+      <p style="margin: 0; font-size: 11px; color: #a1a1aa;">Rol ADMIN: campos deshabilitados y sin este bloque («Solo lectura para el rol Administrador»).</p>
+    </section>
+    <section style="border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+      <h3 style="margin: 0; font-size: 14px; font-weight: 600;">Historial de versiones</h3>
+      <sc-for list="{{versions}}" as="v" hint-placeholder-count="3">
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 8px 10px; background: #18181b; border-radius: 6px; font-size: 12px;">
+          <span style="font-weight: 600; min-width: 90px;">{{v.ver}} <span style="color: #86efac; font-weight: 500;">{{v.active}}</span></span>
+          <span style="flex-grow: 1; color: #d4d4d8;">{{v.reason}}</span>
+          <span style="color: #a1a1aa;">{{v.date}}</span>
+        </div>
+      </sc-for>
+    </section>
+  </main>
+  <footer style="border-top: 1px solid #27272a; padding: 10px 16px; text-align: center; font-size: 11px; color: #a1a1aa;">© 2025 Plataforma de Apoyo Diagnóstico Oncológico. Todos los derechos reservados.</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+  const weights = [
+    { id: 'w-ai', label: 'IA', v: 40 },
+    { id: 'w-age', label: 'Edad', v: 20 },
+    { id: 'w-fam', label: 'Antecedente familiar', v: 15 },
+    { id: 'w-prev', label: 'Cáncer previo', v: 15 },
+    { id: 'w-wait', label: 'Tiempo de espera', v: 10 }
+  ];
+  const versions = [
+    { ver: 'v3', active: '(activa)', reason: '[Motivo del cambio]', date: '[dd-mm-aaaa hh:mm]' },
+    { ver: 'v2', active: '', reason: '[Motivo del cambio]', date: '[dd-mm-aaaa hh:mm]' },
+    { ver: 'v1', active: '', reason: 'Configuración inicial', date: '[dd-mm-aaaa hh:mm]' }
+  ];
+  return { weights, versions };
+}
+}
+</script>
+</body>
+</html>

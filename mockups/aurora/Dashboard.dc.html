@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Aurora · Dashboard</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#09090b}
+a{color:#a78bfa}a:hover{color:#c4b5fd}
+input{background:#09090b;border:1px solid #3f3f46;border-radius:6px;color:#fafafa;font:inherit;font-size:13px;box-sizing:border-box}
+th{padding:8px 10px;text-align:left;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+td{padding:8px 10px;font-size:12px;white-space:nowrap;border-top:1px solid #27272a}
+</style>
+</helmet>
+<div style="min-height: 1500px; display: flex; flex-direction: column; background: #09090b; color: #fafafa; font-family: Inter, system-ui, sans-serif;">
+  <dc-import name="Header" active="dashboard" role="MEDICO" hint-size="100%,96px"></dc-import>
+  <main style="flex-grow: 1; width: 100%; max-width: 1280px; margin: 0 auto; padding: 24px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+    <div>
+      <h2 style="margin: 0; font-size: 20px; font-weight: 700;">Dashboard</h2>
+      <p style="margin: 4px 0 0; font-size: 13px; color: #a1a1aa;">Métricas agregadas, sin datos identificables de pacientes. (Valores de ejemplo.)</p>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+      <div style="display: flex; flex-direction: column; gap: 4px;"><label for="d-from" style="font-size: 12px; font-weight: 500;">Desde</label><input id="d-from" type="date" style="height: 36px; padding: 0 8px;"></div>
+      <div style="display: flex; flex-direction: column; gap: 4px;"><label for="d-to" style="font-size: 12px; font-weight: 500;">Hasta</label><input id="d-to" type="date" style="height: 36px; padding: 0 8px;"></div>
+      <div style="display: flex; flex-direction: column; gap: 4px;"><label for="d-h" style="font-size: 12px; font-weight: 500;">ALTA pendiente más de (h)</label><input id="d-h" type="number" value="24" style="height: 36px; padding: 0 8px; width: 160px;"></div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+      <sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+        <div style="border: 1px solid #27272a; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 4px;">
+          <div style="display: flex; justify-content: flex-end; min-height: 20px;"><span style="{{k.chipStyle}}">{{k.chip}}</span></div>
+          <p style="margin: 0; font-size: 24px; font-weight: 700;">{{k.value}}</p>
+          <p style="margin: 0; font-size: 12px; color: #a1a1aa;">{{k.label}}</p>
+          <p style="margin: 0; font-size: 11px; color: #a1a1aa;">{{k.hint}}</p>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 16px;">
+      <section style="border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <h3 style="margin: 0; font-size: 14px; font-weight: 600;">Casos por nivel de triage vigente</h3>
+        <sc-for list="{{bars}}" as="b" hint-placeholder-count="3">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="width: 52px; font-size: 12px; font-weight: 600;">{{b.l}}</span>
+            <div style="flex-grow: 1; height: 18px; background: #18181b; border-radius: 4px; overflow: hidden;"><div style="{{b.style}}"></div></div>
+            <span style="width: 32px; text-align: right; font-size: 12px;">{{b.n}}</span>
+          </div>
+        </sc-for>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; text-align: center;">
+          <div style="background: #18181b; border-radius: 8px; padding: 8px;"><p style="margin: 0; font-size: 16px; font-weight: 700;">6</p><p style="margin: 0; font-size: 11px; color: #a1a1aa;">Abierto</p></div>
+          <div style="background: #18181b; border-radius: 8px; padding: 8px;"><p style="margin: 0; font-size: 16px; font-weight: 700;">18</p><p style="margin: 0; font-size: 11px; color: #a1a1aa;">Priorizado</p></div>
+          <div style="background: #18181b; border-radius: 8px; padding: 8px;"><p style="margin: 0; font-size: 16px; font-weight: 700;">7</p><p style="margin: 0; font-size: 11px; color: #a1a1aa;">En revisión</p></div>
+          <div style="background: #18181b; border-radius: 8px; padding: 8px;"><p style="margin: 0; font-size: 16px; font-weight: 700;">31</p><p style="margin: 0; font-size: 11px; color: #a1a1aa;">Cerrado</p></div>
+        </div>
+      </section>
+      <section style="border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <h3 style="margin: 0; font-size: 14px; font-weight: 600;">Casos creados por semana</h3>
+        <svg role="img" aria-label="Casos por semana: 6, 9, 7, 12, 10, 14, 11, 16" viewBox="0 0 520 200" style="width: 100%; height: auto;">
+          <line x1="36" x2="510" y1="20" y2="20" stroke="#27272a"></line>
+          <line x1="36" x2="510" y1="80" y2="80" stroke="#27272a"></line>
+          <line x1="36" x2="510" y1="140" y2="140" stroke="#27272a"></line>
+          <line x1="36" x2="510" y1="170" y2="170" stroke="#3f3f46"></line>
+          <text x="28" y="24" text-anchor="end" font-size="10" fill="#a1a1aa">16</text>
+          <text x="28" y="84" text-anchor="end" font-size="10" fill="#a1a1aa">10</text>
+          <text x="28" y="144" text-anchor="end" font-size="10" fill="#a1a1aa">4</text>
+          <polyline fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linejoin="round" points="50,120 115,90 180,110 245,60 310,80 375,40 440,70 500,20"></polyline>
+          <circle cx="50" cy="120" r="4" fill="#8b5cf6"></circle><circle cx="115" cy="90" r="4" fill="#8b5cf6"></circle><circle cx="180" cy="110" r="4" fill="#8b5cf6"></circle><circle cx="245" cy="60" r="4" fill="#8b5cf6"></circle><circle cx="310" cy="80" r="4" fill="#8b5cf6"></circle><circle cx="375" cy="40" r="4" fill="#8b5cf6"></circle><circle cx="440" cy="70" r="4" fill="#8b5cf6"></circle><circle cx="500" cy="20" r="4" fill="#8b5cf6"></circle>
+          <text x="50" y="190" text-anchor="middle" font-size="10" fill="#a1a1aa">[sem 1]</text>
+          <text x="500" y="190" text-anchor="middle" font-size="10" fill="#a1a1aa">[sem 8]</text>
+        </svg>
+        <p style="margin: 0; font-size: 11px; color: #a1a1aa;">Tooltip al pasar el mouse: «Semana del [fecha]: N casos».</p>
+      </section>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 16px;">
+      <section style="border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <h3 style="margin: 0; font-size: 14px; font-weight: 600;">Triage → revisión médica (promedio)</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; text-align: center;">
+          <div style="background: #18181b; border-radius: 8px; padding: 10px;"><p style="margin: 0; font-size: 18px; font-weight: 700; color: #fca5a5;">6.2 h</p><p style="margin: 0; font-size: 11px; color: #a1a1aa;">ALTA</p></div>
+          <div style="background: #18181b; border-radius: 8px; padding: 10px;"><p style="margin: 0; font-size: 18px; font-weight: 700; color: #fdba74;">21.5 h</p><p style="margin: 0; font-size: 11px; color: #a1a1aa;">MEDIA</p></div>
+          <div style="background: #18181b; border-radius: 8px; padding: 10px;"><p style="margin: 0; font-size: 18px; font-weight: 700; color: #86efac;">—</p><p style="margin: 0; font-size: 11px; color: #a1a1aa;">BAJA</p></div>
+        </div>
+      </section>
+      <section style="border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 6px;">
+        <h3 style="margin: 0; font-size: 14px; font-weight: 600;">Overrides médicos</h3>
+        <p style="margin: 0; font-size: 28px; font-weight: 700;">8.3%</p>
+        <p style="margin: 0; font-size: 12px; color: #a1a1aa;">[n] de [N] triages ajustados por un médico.</p>
+      </section>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 16px;">
+      <section style="border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+        <h3 style="margin: 0; font-size: 14px; font-weight: 600;">Concordancia IA – médico</h3>
+        <p style="margin: 0; font-size: 28px; font-weight: 700;">81.0%</p>
+        <p style="margin: 0; font-size: 12px; color: #a1a1aa;">Resultados de IA concordantes sobre los evaluables.</p>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; text-align: center;">
+          <div style="background: #18181b; border-radius: 8px; padding: 8px;"><p style="margin: 0; font-size: 16px; font-weight: 700;">17</p><p style="margin: 0; font-size: 11px; color: #a1a1aa;">Concordante</p></div>
+          <div style="background: #18181b; border-radius: 8px; padding: 8px;"><p style="margin: 0; font-size: 16px; font-weight: 700;">3</p><p style="margin: 0; font-size: 11px; color: #a1a1aa;">Falso positivo</p></div>
+          <div style="background: #18181b; border-radius: 8px; padding: 8px;"><p style="margin: 0; font-size: 16px; font-weight: 700;">1</p><p style="margin: 0; font-size: 11px; color: #a1a1aa;">Falso negativo</p></div>
+          <div style="background: #18181b; border-radius: 8px; padding: 8px;"><p style="margin: 0; font-size: 16px; font-weight: 700;">2</p><p style="margin: 0; font-size: 11px; color: #a1a1aa;">No evaluable</p></div>
+        </div>
+        <p style="margin: 0; padding: 6px 8px; border: 1px solid #78350f; background: #1f1708; color: #fde68a; border-radius: 6px; font-size: 11px;">Incluye resultados de IA SIMULADA: sin valor clínico.</p>
+      </section>
+      <section style="border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+        <h3 style="margin: 0; font-size: 14px; font-weight: 600;">Aprobación del triage</h3>
+        <p style="margin: 0; font-size: 28px; font-weight: 700;">87.1%</p>
+        <p style="margin: 0; font-size: 12px; color: #a1a1aa;">Revisiones que evaluaron el triage como apropiado.</p>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; text-align: center;">
+          <div style="background: #18181b; border-radius: 8px; padding: 8px;"><p style="margin: 0; font-size: 16px; font-weight: 700;">27</p><p style="margin: 0; font-size: 11px; color: #a1a1aa;">Apropiado</p></div>
+          <div style="background: #18181b; border-radius: 8px; padding: 8px;"><p style="margin: 0; font-size: 16px; font-weight: 700;">3</p><p style="margin: 0; font-size: 11px; color: #a1a1aa;">Sobreestimado</p></div>
+          <div style="background: #18181b; border-radius: 8px; padding: 8px;"><p style="margin: 0; font-size: 16px; font-weight: 700;">1</p><p style="margin: 0; font-size: 11px; color: #a1a1aa;">Subestimado</p></div>
+        </div>
+      </section>
+    </div>
+
+    <section style="border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+      <h3 style="margin: 0; font-size: 14px; font-weight: 600;">Desempeño del modelo por versión</h3>
+      <p style="margin: 0; font-size: 12px; color: #a1a1aa;">K5 (exactitud ≥ 85 %) se evalúa solo con resultados reales y al menos [N] casos evaluables.</p>
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead style="background: #18181b;"><tr><th>Versión</th><th>Evaluables</th><th>VP / VN / FP / FN</th><th>Exactitud</th><th>Sensibilidad</th><th>Especificidad</th><th>VPP / VPN</th><th>K5</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>[simulated-v1] <span style="padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; background: #2a1f08; color: #fcd34d; border: 1px solid #78350f;">IA SIMULADA</span></td>
+              <td>21 <span style="color: #a1a1aa;">(+2 no eval.)</span></td>
+              <td style="color: #a1a1aa;">9 / 8 / 3 / 1</td>
+              <td>81.0% <span style="color: #a1a1aa;">[IC95]</span></td>
+              <td>90.0% <span style="color: #a1a1aa;">[IC95]</span></td>
+              <td>72.7% <span style="color: #a1a1aa;">[IC95]</span></td>
+              <td style="color: #a1a1aa;">75.0% / 88.9%</td>
+              <td><span style="font-size: 11px; color: #a1a1aa;">No aplica</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <button type="button" style="align-self: flex-start; min-height: 36px; padding: 0 12px; background: #27272a; color: #fafafa; border: 0; border-radius: 6px; font: inherit; font-size: 12px;">Ver datos en tabla</button>
+  </main>
+  <footer style="border-top: 1px solid #27272a; padding: 10px 16px; text-align: center; font-size: 11px; color: #a1a1aa;">© 2025 Plataforma de Apoyo Diagnóstico Oncológico. Todos los derechos reservados.</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1500}}'>
+class Component extends DCLogic {
+renderVals() {
+  const chip = 'padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;';
+  const ok = chip + 'background:#0f2418;color:#86efac;border:1px solid #14532d;';
+  const bad = chip + 'background:#2a1215;color:#fca5a5;border:1px solid #7f1d1d;';
+  const kpis = [
+    { value: '62', label: 'Casos en el período', hint: '', chip: '', chipStyle: '' },
+    { value: '2.4 min', label: 'Creación → triage (promedio)', hint: 'Meta ≤ 5 min', chip: 'Cumple', chipStyle: ok },
+    { value: '2', label: 'Casos ALTA pendientes > 24 h', hint: 'Meta: 0', chip: 'Fuera de meta', chipStyle: bad },
+    { value: '420 ms', label: 'p95 tiempo de respuesta API (1.284 requests)', hint: 'Meta < 3 s', chip: 'Cumple', chipStyle: ok }
+  ];
+  const max = 18;
+  const bars = [['ALTA', 9, '#ef4444'], ['MEDIA', 18, '#f59e0b'], ['BAJA', 11, '#22c55e']].map(([l, n, c]) => ({
+    l, n, style: 'height:100%;border-radius:4px;background:' + c + ';width:' + Math.round((n / max) * 100) + '%;'
+  }));
+  return { kpis, bars };
+}
+}
+</script>
+</body>
+</html>

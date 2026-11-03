@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Aurora · Carga de imágenes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#09090b}
+a{color:#a78bfa}a:hover{color:#c4b5fd}
+select,input{background:#09090b;border:1px solid #3f3f46;border-radius:6px;color:#fafafa;font:inherit;font-size:13px;box-sizing:border-box}
+</style>
+</helmet>
+<div style="min-height: 920px; display: flex; flex-direction: column; background: #09090b; color: #fafafa; font-family: Inter, system-ui, sans-serif;">
+  <dc-import name="Header" active="upload" role="MEDICO" hint-size="100%,96px"></dc-import>
+  <main style="flex-grow: 1; width: 100%; max-width: 1280px; margin: 0 auto; padding: 24px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+    <div>
+      <h2 style="margin: 0; font-size: 20px; font-weight: 700;">Carga de imágenes</h2>
+      <p style="margin: 4px 0 0; font-size: 13px; color: #a1a1aa;">Mamografías o ecografías en PNG o JPEG (máx. 60 MB). Se guardan cifradas y se analizan automáticamente con el proveedor de IA configurado (hoy: simulado).</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; align-items: start;">
+      <section style="border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <label for="up-case" style="font-size: 12px; font-weight: 500;">Caso</label>
+          <select id="up-case" style="height: 38px; padding: 0 8px;"><option>AUR-2026-000151 · [Paciente B]</option></select>
+          <p style="margin: 0; font-size: 11px; color: #a1a1aa;">Los casos se crean en la sección Casos.</p>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+          <div style="display: flex; flex-direction: column; gap: 4px;"><label for="up-exam" style="font-size: 12px; font-weight: 500;">Tipo de examen</label><select id="up-exam" style="height: 38px; padding: 0 8px;"><option>Mamografía</option><option>Ecografía</option><option>Otro</option></select></div>
+          <div style="display: flex; flex-direction: column; gap: 4px;"><label for="up-lat" style="font-size: 12px; font-weight: 500;">Lateralidad</label><select id="up-lat" style="height: 38px; padding: 0 8px;"><option>Izquierda</option><option>Derecha</option><option>No indicada</option></select></div>
+        </div>
+        <label style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; height: 140px; border: 2px dashed #3f3f46; border-radius: 10px; color: #a1a1aa; font-size: 13px;">
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5"></path><path d="M12 3v12"></path></svg>
+          <span style="color: #fafafa;">[mamografia_izq].png</span>
+          <span style="font-size: 11px;">4.2 MB</span>
+          <input type="file" style="position: absolute; left: -9999px;">
+        </label>
+        <div style="height: 180px; border-radius: 8px; background: #18181b; border: 1px dashed #3f3f46; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #a1a1aa;">[Vista previa]</div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <div style="height: 8px; border-radius: 4px; background: #27272a; overflow: hidden;"><div style="width: 64%; height: 100%; background: #7c3aed;"></div></div>
+          <p style="margin: 0; font-size: 11px; color: #a1a1aa;">Subiendo... 64%</p>
+        </div>
+        <div style="padding: 8px 10px; background: #0f2418; border: 1px solid #14532d; color: #bbf7d0; border-radius: 6px; font-size: 12px;">✓ Imagen cargada (comprimida en el navegador). El análisis corre en segundo plano.</div>
+        <button type="button" style="min-height: 40px; background: #7c3aed; color: #fff; border: 0; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 600;">Subir imagen</button>
+      </section>
+      <section style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+          <h4 style="margin: 0; font-size: 14px; font-weight: 600;">Imágenes del caso</h4>
+          <div style="border: 1px solid #27272a; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #a1a1aa;"><span><strong style="color: #fafafa;">Mamografía</strong> · Izquierda</span><span>[dd-mm-aaaa hh:mm]</span></div>
+            <div style="height: 150px; border-radius: 6px; background: #18181b; border: 1px dashed #3f3f46; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #a1a1aa;">[Imagen]</div>
+            <p style="margin: 0; font-size: 12px; color: #a1a1aa;">⟳ Análisis en curso...</p>
+          </div>
+          <div style="border: 1px solid #27272a; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #a1a1aa;"><span><strong style="color: #fafafa;">Ecografía</strong> · Derecha</span><span>[dd-mm-aaaa hh:mm]</span></div>
+            <div style="padding: 8px 10px; border-radius: 6px; background: #0f2418; border: 1px solid #14532d; display: flex; align-items: center; gap: 8px; font-size: 12px;"><strong style="color: #86efac;">Sin hallazgos · 12.4%</strong><span style="padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; background: #2a1f08; color: #fcd34d; border: 1px solid #78350f;">IA SIMULADA</span></div>
+            <p style="margin: 0; font-size: 12px; color: #a1a1aa;">Validación médica: <span style="padding: 2px 6px; border-radius: 4px; font-size: 11px; background: #0f2418; color: #86efac; border: 1px solid #14532d;">Concordante</span></p>
+          </div>
+          <p style="margin: 0; font-size: 11px; color: #a1a1aa;">Rol ADMINISTRATIVO: puede cargar, pero no ver imágenes ni resultados de IA.</p>
+        </div>
+        <div style="display: flex; gap: 8px; padding: 10px 12px; border: 1px solid #78350f; background: #1f1708; border-radius: 8px; font-size: 12px; color: #fde68a; line-height: 1.5;">
+          <span aria-hidden="true">!</span>
+          <p style="margin: 0;">Herramienta de apoyo: no reemplaza el criterio médico. Mientras el modelo YOLO no esté integrado, todo resultado se marca como <strong>IA SIMULADA</strong> y no tiene valor clínico.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer style="border-top: 1px solid #27272a; padding: 10px 16px; text-align: center; font-size: 11px; color: #a1a1aa;">© 2025 Plataforma de Apoyo Diagnóstico Oncológico. Todos los derechos reservados.</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":920}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

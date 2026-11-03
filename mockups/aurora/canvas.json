@@ -1,0 +1,35 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-11-03T12:00:00Z"},
+  "title": "Aurora — Mockup de vistas",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 1280, "h": 800, "title": "01 · Login", "expand": "fill"},
+    "Home.dc.html": {"x": 1360, "y": 0, "w": 1280, "h": 760, "title": "02 · Inicio (Médico / Administrativo)", "expand": "fill"},
+    "Header.dc.html": {"x": 2720, "y": 0, "w": 1280, "h": 96, "title": "Componente · Header + navegación por rol", "expand": "fill"},
+    "Cola.dc.html": {"x": 0, "y": 1220, "w": 1280, "h": 860, "title": "03 · Cola de triage (Médico)", "expand": "fill"},
+    "Casos.dc.html": {"x": 1360, "y": 1220, "w": 1280, "h": 1560, "title": "04 · Casos — lista + detalle (EN_REVISION)", "expand": "fill"},
+    "NuevoCaso.dc.html": {"x": 2720, "y": 1220, "w": 1280, "h": 1000, "title": "05 · Nuevo caso + modal Paciente", "expand": "fill"},
+    "Imagenes.dc.html": {"x": 4080, "y": 1220, "w": 1280, "h": 920, "title": "06 · Carga de imágenes", "expand": "fill"},
+    "Dashboard.dc.html": {"x": 0, "y": 3200, "w": 1280, "h": 1500, "title": "07 · Dashboard de métricas", "expand": "fill"},
+    "Parametros.dc.html": {"x": 1360, "y": 3200, "w": 1280, "h": 1000, "title": "08 · Parámetros de triage", "expand": "fill"},
+    "AdminUsuarios.dc.html": {"x": 2720, "y": 3200, "w": 1280, "h": 820, "title": "09 · Administración — Usuarios", "expand": "fill"},
+    "AdminAuditoria.dc.html": {"x": 4080, "y": 3200, "w": 1280, "h": 820, "title": "10 · Administración — Auditoría", "expand": "fill"}
+  },
+  "order": [
+    "Main.dc.html", "Home.dc.html", "Header.dc.html",
+    "Cola.dc.html", "Casos.dc.html", "NuevoCaso.dc.html", "Imagenes.dc.html",
+    "Dashboard.dc.html", "Parametros.dc.html", "AdminUsuarios.dc.html", "AdminAuditoria.dc.html"
+  ],
+  "notes": {
+    "t1": {"x": 0, "y": -300, "text": "Acceso y navegación", "kind": "title1", "maxW": 4000},
+    "t2": {"x": 0, "y": 920, "text": "Flujo clínico: cola, casos, imágenes", "kind": "title1", "maxW": 5360},
+    "t3": {"x": 0, "y": 2900, "text": "Gestión: métricas, parámetros, administración", "kind": "title1", "maxW": 5360},
+    "n1": {"x": 4080, "y": 0, "w": 460, "fill": "blue", "size": "m", "text": "Flujo de entrada\n\nLogin (RUT + contraseña) → GET /me.\n• ADMIN entra directo a Administración.\n• MÉDICO y ADMINISTRATIVO entran a Inicio.\n\nLa navegación es una sola página (SPA) sin rutas: el Header cambia la sección activa."},
+    "n2": {"x": 4620, "y": 0, "w": 460, "fill": "orange", "size": "m", "text": "Menú por rol\n\nMÉDICO: Inicio · Cola · Casos · Imágenes · Dashboard · Parámetros + campana de notificaciones ALTA.\nADMINISTRATIVO: Inicio · Cola · Casos · Imágenes · Dashboard.\nADMIN: Dashboard · Parámetros (solo lectura) · Administración."},
+    "n3": {"x": 0, "y": 2120, "w": 600, "fill": "teal", "size": "m", "text": "Variante ADMINISTRATIVO de la cola: solo #, Código, Nivel, Estado y Espera. Sin puntaje, regla, paciente ni botón Abrir."},
+    "n4": {"x": 4080, "y": 2200, "w": 600, "fill": "teal", "size": "m", "text": "Estados del caso: ABIERTO → PRIORIZADO → EN_REVISION → CERRADO.\nEl panel de Revisión médica cambia según el estado: espera triage / «Tomar caso» / formulario / resumen + firma + PDF."}
+  },
+  "designSystems": []
+}

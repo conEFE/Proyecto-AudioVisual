@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Aurora · Casos clínicos</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#09090b}
+a{color:#a78bfa}a:hover{color:#c4b5fd}
+th{padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+td{padding:10px 12px;font-size:13px;white-space:nowrap;border-top:1px solid #27272a}
+select,input,textarea{background:#09090b;border:1px solid #3f3f46;border-radius:6px;color:#fafafa;font:inherit;font-size:13px;box-sizing:border-box}
+</style>
+</helmet>
+<div style="min-height: 1560px; display: flex; flex-direction: column; background: #09090b; color: #fafafa; font-family: Inter, system-ui, sans-serif;">
+  <dc-import name="Header" active="cases" role="MEDICO" hint-size="100%,96px"></dc-import>
+  <main style="flex-grow: 1; width: 100%; max-width: 1280px; margin: 0 auto; padding: 24px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">
+      <div>
+        <h2 style="margin: 0; font-size: 20px; font-weight: 700;">Casos clínicos</h2>
+        <p style="margin: 4px 0 0; font-size: 13px; color: #a1a1aa;">Cada caso tiene un código anónimo, síntomas, BI-RADS, triage e imágenes.</p>
+      </div>
+      <a href="NuevoCaso.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; background: #7c3aed; color: #fff; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none;">+ Nuevo caso</a>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start;">
+      <!-- Lista (3/5) -->
+      <section style="flex: 3 1 560px; min-width: 0; border: 1px solid #27272a; border-radius: 10px; overflow: hidden;">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid #27272a;">
+          <label for="st" style="font-size: 12px; color: #a1a1aa;">Estado</label>
+          <select id="st" style="height: 34px; padding: 0 8px;"><option>Todos</option><option>Abierto</option><option>Priorizado</option><option>En revisión</option><option>Cerrado</option></select>
+          <span style="margin-left: auto; font-size: 12px; color: #a1a1aa;">24 casos</span>
+        </div>
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead style="background: #18181b;"><tr><th>Código</th><th>Paciente</th><th>Fecha</th><th>Estado</th><th>Triage</th><th>Imágenes</th><th><span style="position: absolute; left: -9999px;">Acción</span></th></tr></thead>
+            <tbody>
+              <sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+                <tr style="{{r.rowStyle}}">
+                  <td style="font-family: ui-monospace, monospace;">{{r.code}}</td>
+                  <td style="color: #a1a1aa;">{{r.patient}}</td>
+                  <td style="color: #a1a1aa;">{{r.date}}</td>
+                  <td><span style="{{r.statusStyle}}">{{r.status}}</span></td>
+                  <td><span style="{{r.levelStyle}}">{{r.level}}</span></td>
+                  <td style="color: #a1a1aa;">{{r.imgs}}</td>
+                  <td><button type="button" style="background: transparent; border: 0; color: #a78bfa; font: inherit; font-size: 13px; font-weight: 600; min-height: 32px;">Ver</button></td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-top: 1px solid #27272a;">
+          <button type="button" style="min-height: 34px; padding: 0 12px; background: #27272a; color: #71717a; border: 0; border-radius: 6px; font: inherit; font-size: 12px;" disabled>Anterior</button>
+          <span style="font-size: 12px; color: #a1a1aa;">Página 1 de 3</span>
+          <button type="button" style="min-height: 34px; padding: 0 12px; background: #27272a; color: #fafafa; border: 0; border-radius: 6px; font: inherit; font-size: 12px;">Siguiente</button>
+        </div>
+      </section>
+
+      <!-- Detalle (2/5) -->
+      <section style="flex: 2 1 400px; min-width: 0; display: flex; flex-direction: column; gap: 14px;">
+        <div style="border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+            <div>
+              <h3 style="margin: 0; font-size: 16px; font-weight: 700; font-family: ui-monospace, monospace;">AUR-2026-000151</h3>
+              <p style="margin: 2px 0 0; font-size: 12px; color: #a1a1aa;">Creado el [dd-mm-aaaa hh:mm]</p>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <span style="padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; background: #2a1215; color: #fca5a5; border: 1px solid #7f1d1d;">ALTA</span>
+              <span style="padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; background: #26210c; color: #fde047; border: 1px solid #713f12;">En revisión</span>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px; padding: 10px; background: #18181b; border-radius: 8px;">
+            <div style="width: 32px; height: 32px; border-radius: 16px; background: #27272a; flex-shrink: 0;"></div>
+            <div style="font-size: 12px; display: flex; flex-direction: column; gap: 2px;">
+              <p style="margin: 0; font-size: 13px; font-weight: 600;">[Nombre Apellido paciente]</p>
+              <p style="margin: 0; color: #a1a1aa;">RUT [11.111.111-1] · [52] años (nac. [dd-mm-aaaa])</p>
+              <p style="margin: 0; color: #a1a1aa;">Antecedente familiar 1er grado: Sí · Cáncer previo: No</p>
+            </div>
+          </div>
+          <fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px;">
+            <legend style="font-size: 12px; font-weight: 500; margin-bottom: 6px;">Síntomas</legend>
+            <label style="display: flex; gap: 8px; align-items: center; font-size: 13px;"><input type="checkbox" checked style="accent-color: #7c3aed;"> Masa palpable</label>
+            <label style="display: flex; gap: 8px; align-items: center; font-size: 13px;"><input type="checkbox" style="accent-color: #7c3aed;"> Secreción por el pezón</label>
+            <label style="display: flex; gap: 8px; align-items: center; font-size: 13px;"><input type="checkbox" style="accent-color: #7c3aed;"> Cambios en piel o pezón</label>
+          </fieldset>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label for="bi" style="font-size: 12px; font-weight: 500;">BI-RADS informado</label>
+            <select id="bi" style="height: 36px; padding: 0 8px;"><option>4 — Sospechoso</option></select>
+          </div>
+          <button type="button" style="align-self: flex-start; min-height: 36px; padding: 0 14px; background: #27272a; color: #71717a; border: 0; border-radius: 6px; font: inherit; font-size: 12px; font-weight: 600;" disabled>Guardar antecedentes</button>
+        </div>
+
+        <!-- Revisión médica -->
+        <div style="border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+          <h4 style="margin: 0; font-size: 14px; font-weight: 600;">Revisión médica</h4>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label for="bf" style="font-size: 12px; font-weight: 500;">BI-RADS final</label>
+            <select id="bf" style="height: 36px; padding: 0 8px;"><option>4 — Sospechoso</option></select>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label for="hz" style="font-size: 12px; font-weight: 500;">Hallazgos</label>
+            <textarea id="hz" rows="3" style="padding: 8px;" placeholder="Descripción de hallazgos"></textarea>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label for="rc" style="font-size: 12px; font-weight: 500;">Recomendación</label>
+            <select id="rc" style="height: 36px; padding: 0 8px;"><option>Control de rutina</option><option>Control en 6 meses</option><option>Estudio complementario</option><option>Biopsia</option><option>Derivación a especialista</option></select>
+          </div>
+          <fieldset style="border: 1px solid #27272a; border-radius: 8px; margin: 0; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
+            <legend style="font-size: 12px; font-weight: 500; padding: 0 4px;">Evaluación del triage</legend>
+            <p style="margin: 0; font-size: 12px; color: #a1a1aa;">Nivel vigente <strong style="color: #fca5a5;">ALTA</strong> · puntaje 71.20 · v3</p>
+            <label style="display: flex; gap: 8px; align-items: center; font-size: 13px;"><input type="radio" name="ta" checked style="accent-color: #7c3aed;"> Apropiado</label>
+            <label style="display: flex; gap: 8px; align-items: center; font-size: 13px;"><input type="radio" name="ta" style="accent-color: #7c3aed;"> Sobreestimado (más prioridad de la necesaria)</label>
+            <label style="display: flex; gap: 8px; align-items: center; font-size: 13px;"><input type="radio" name="ta" style="accent-color: #7c3aed;"> Subestimado (menos prioridad de la necesaria)</label>
+            <input aria-label="Comentario sobre el triage" placeholder="Comentario sobre el triage (opcional)" style="height: 34px; padding: 0 8px;">
+          </fieldset>
+          <p style="margin: 0; padding: 8px 10px; background: #26210c; border: 1px solid #713f12; color: #fde68a; border-radius: 6px; font-size: 12px;">Falta validar el resultado de IA de 1 imagen(es) (sección Imágenes) antes de cerrar.</p>
+          <button type="button" style="min-height: 40px; background: #27272a; color: #71717a; border: 0; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 600;" disabled>Registrar revisión y cerrar caso</button>
+          <p style="margin: 0; font-size: 11px; color: #a1a1aa;">Al cerrar, el caso queda en solo lectura.</p>
+        </div>
+
+        <!-- Triage -->
+        <div style="border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h4 style="margin: 0; font-size: 14px; font-weight: 600;">Triage</h4>
+            <div style="display: flex; gap: 6px;">
+              <span style="padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; background: #2a1f08; color: #fcd34d; border: 1px solid #78350f;">IA SIMULADA</span>
+              <span style="padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; background: #2a1215; color: #fca5a5; border: 1px solid #7f1d1d;">ALTA</span>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; text-align: center;">
+            <div style="background: #18181b; border-radius: 8px; padding: 10px;"><p style="margin: 0; font-size: 18px; font-weight: 700;">71.20</p><p style="margin: 0; font-size: 11px; color: #a1a1aa;">Puntaje (0–100)</p></div>
+            <div style="background: #18181b; border-radius: 8px; padding: 10px;"><p style="margin: 0; font-size: 18px; font-weight: 700;">ALTA</p><p style="margin: 0; font-size: 11px; color: #a1a1aa;">Nivel calculado</p></div>
+            <div style="background: #18181b; border-radius: 8px; padding: 10px;"><p style="margin: 0; font-size: 18px; font-weight: 700;">v3</p><p style="margin: 0; font-size: 11px; color: #a1a1aa;">Configuración</p></div>
+          </div>
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead><tr><th style="padding: 6px 4px;">Factor</th><th style="padding: 6px 4px;">Valor</th><th style="padding: 6px 4px;">Peso</th><th style="padding: 6px 4px; text-align: right;">Aporte</th></tr></thead>
+            <tbody>
+              <sc-for list="{{factors}}" as="f" hint-placeholder-count="5">
+                <tr><td style="padding: 6px 4px; font-size: 12px; white-space: normal;">{{f.label}}</td><td style="padding: 6px 4px; font-size: 12px; color: #a1a1aa;">{{f.value}}</td><td style="padding: 6px 4px; font-size: 12px; color: #a1a1aa;">{{f.weight}}</td><td style="padding: 6px 4px; font-size: 12px; text-align: right;">{{f.points}}</td></tr>
+              </sc-for>
+            </tbody>
+          </table>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <button type="button" style="min-height: 34px; padding: 0 12px; background: #27272a; color: #fafafa; border: 0; border-radius: 6px; font: inherit; font-size: 12px;">↻ Recalcular</button>
+            <button type="button" style="min-height: 34px; padding: 0 12px; background: #27272a; color: #fafafa; border: 0; border-radius: 6px; font: inherit; font-size: 12px;">Cambiar nivel</button>
+            <button type="button" style="min-height: 34px; padding: 0 12px; background: #27272a; color: #fafafa; border: 0; border-radius: 6px; font: inherit; font-size: 12px;">Historial</button>
+          </div>
+          <div style="border: 1px dashed #3f3f46; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
+            <p style="margin: 0; font-size: 11px; color: #a1a1aa; text-transform: uppercase; letter-spacing: .05em;">Override (desplegable)</p>
+            <label for="ovl" style="font-size: 12px; font-weight: 500;">Nivel final</label>
+            <select id="ovl" style="height: 34px; padding: 0 8px;"><option>ALTA</option><option>MEDIA</option><option>BAJA</option></select>
+            <label for="ovr" style="font-size: 12px; font-weight: 500;">Motivo (obligatorio)</label>
+            <textarea id="ovr" rows="2" style="padding: 8px;"></textarea>
+            <button type="button" style="min-height: 36px; background: #7c3aed; color: #fff; border: 0; border-radius: 6px; font: inherit; font-size: 12px; font-weight: 600;">Confirmar cambio de nivel</button>
+            <p style="margin: 0; font-size: 11px; color: #a1a1aa;">El cambio queda registrado en la auditoría.</p>
+          </div>
+        </div>
+
+        <!-- Imágenes del caso -->
+        <div style="border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+          <h4 style="margin: 0; font-size: 14px; font-weight: 600;">Imágenes (1)</h4>
+          <div style="border: 1px solid #27272a; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #a1a1aa;"><span><strong style="color: #fafafa;">Mamografía</strong> · Izquierda</span><span>[dd-mm-aaaa hh:mm]</span></div>
+            <div style="height: 180px; border-radius: 6px; background: #18181b; border: 1px dashed #3f3f46; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #a1a1aa;">[Imagen descifrada]</div>
+            <div style="padding: 8px 10px; border-radius: 6px; background: #2a1a0e; border: 1px solid #7c2d12; display: flex; flex-direction: column; gap: 4px;">
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12px;"><strong style="color: #fdba74;">Hallazgo · 87.3%</strong><span style="padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; background: #2a1f08; color: #fcd34d; border: 1px solid #78350f;">IA SIMULADA</span></div>
+              <p style="margin: 0; font-size: 12px; color: #d4d4d8;">[Mensaje del modelo]</p>
+              <p style="margin: 0; font-size: 11px; color: #a1a1aa;">Modelo [simulated-v1] · calidad OK</p>
+            </div>
+            <div style="padding: 8px 10px; border-radius: 6px; background: #18181b; display: flex; flex-direction: column; gap: 6px;">
+              <p style="margin: 0; font-size: 12px; font-weight: 500;">¿Está de acuerdo con el resultado de la IA?</p>
+              <input aria-label="Comentario de la validación" placeholder="Comentario (opcional)" style="height: 32px; padding: 0 8px;">
+              <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                <button type="button" style="min-height: 32px; padding: 0 10px; background: #0f2418; color: #86efac; border: 1px solid #14532d; border-radius: 6px; font: inherit; font-size: 12px;">Concordante</button>
+                <button type="button" style="min-height: 32px; padding: 0 10px; background: #2a1215; color: #fca5a5; border: 1px solid #7f1d1d; border-radius: 6px; font: inherit; font-size: 12px;">Falso positivo</button>
+                <button type="button" style="min-height: 32px; padding: 0 10px; background: #1c1d22; color: #cbd5e1; border: 1px solid #334155; border-radius: 6px; font: inherit; font-size: 12px;">No evaluable</button>
+              </div>
+            </div>
+            <p style="margin: 0; font-size: 11px; color: #a1a1aa;">[archivo].png · 842 KB · análisis listo</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer style="border-top: 1px solid #27272a; padding: 10px 16px; text-align: center; font-size: 11px; color: #a1a1aa;">© 2025 Plataforma de Apoyo Diagnóstico Oncológico. Todos los derechos reservados.</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1560}}'>
+class Component extends DCLogic {
+renderVals() {
+  const LV = {
+    ALTA: 'background:#2a1215;color:#fca5a5;border:1px solid #7f1d1d;',
+    MEDIA: 'background:#2a1a0e;color:#fdba74;border:1px solid #7c2d12;',
+    BAJA: 'background:#0f2418;color:#86efac;border:1px solid #14532d;',
+    '—': 'color:#a1a1aa;'
+  };
+  const ST = {
+    'Priorizado': 'background:#0f1a2e;color:#93c5fd;border:1px solid #1e3a8a;',
+    'En revisión': 'background:#26210c;color:#fde047;border:1px solid #713f12;',
+    'Abierto': 'background:#1c1d22;color:#cbd5e1;border:1px solid #334155;',
+    'Cerrado': 'background:#0f2418;color:#86efac;border:1px solid #14532d;'
+  };
+  const b = 'padding:2px 8px;border-radius:4px;font-size:11px;';
+  const data = [
+    ['AUR-2026-000156', '[Paciente G]', '[fecha]', 'Priorizado', 'MEDIA', 1],
+    ['AUR-2026-000155', '[Paciente C]', '[fecha]', 'Priorizado', 'ALTA', 0],
+    ['AUR-2026-000154', '[Paciente J]', '[fecha]', 'Abierto', '—', 0],
+    ['AUR-2026-000153', '[Paciente I]', '[fecha]', 'Priorizado', 'BAJA', 2],
+    ['AUR-2026-000151', '[Paciente B]', '[fecha]', 'En revisión', 'ALTA', 1],
+    ['AUR-2026-000149', '[Paciente F]', '[fecha]', 'En revisión', 'MEDIA', 2],
+    ['AUR-2026-000146', '[Paciente K]', '[fecha]', 'Cerrado', 'BAJA', 1],
+    ['AUR-2026-000142', '[Paciente A]', '[fecha]', 'Priorizado', 'ALTA', 3]
+  ];
+  const rows = data.map((d) => ({
+    code: d[0], patient: d[1], date: d[2], status: d[3], level: d[4] === '—' ? 'Sin triage' : d[4], imgs: d[5],
+    rowStyle: d[0] === 'AUR-2026-000151' ? 'background:#1e1533;' : '',
+    statusStyle: b + 'font-weight:600;' + ST[d[3]],
+    levelStyle: b + 'font-weight:700;' + LV[d[4]]
+  }));
+  const factors = [
+    { label: 'IA (máx. confianza con hallazgo)', value: '87.3%', weight: '40', points: '34.92' },
+    { label: 'Edad', value: '52 años', weight: '20', points: '20.00' },
+    { label: 'Antecedente familiar 1er grado', value: 'Sí', weight: '15', points: '15.00' },
+    { label: 'Cáncer de mama previo', value: 'No', weight: '15', points: '0.00' },
+    { label: 'Tiempo de espera', value: '0.2 días', weight: '10', points: '1.28' }
+  ];
+  return { rows, factors };
+}
+}
+</script>
+</body>
+</html>

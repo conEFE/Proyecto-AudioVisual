@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Aurora · Administración, usuarios</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#09090b}
+a{color:#a78bfa}a:hover{color:#c4b5fd}
+select,input{background:#09090b;border:1px solid #3f3f46;border-radius:6px;color:#fafafa;font:inherit;font-size:13px;box-sizing:border-box}
+th{padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+td{padding:10px 12px;font-size:13px;white-space:nowrap;border-top:1px solid #27272a}
+</style>
+</helmet>
+<div style="min-height: 820px; display: flex; flex-direction: column; background: #09090b; color: #fafafa; font-family: Inter, system-ui, sans-serif;">
+  <dc-import name="Header" active="panel" role="ADMIN" hint-size="100%,96px"></dc-import>
+  <main style="flex-grow: 1; width: 100%; max-width: 1280px; margin: 0 auto; padding: 24px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+    <div>
+      <h2 style="margin: 0; font-size: 20px; font-weight: 700;">Administración</h2>
+      <p style="margin: 4px 0 0; font-size: 13px; color: #a1a1aa;">Usuarios, roles y bitácora de auditoría. El administrador no accede a datos clínicos.</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+      <div style="border: 1px solid #27272a; border-radius: 10px; padding: 14px;"><p style="margin: 0; font-size: 24px; font-weight: 700;">12</p><p style="margin: 0; font-size: 12px; color: #a1a1aa;">Usuarios</p></div>
+      <div style="border: 1px solid #27272a; border-radius: 10px; padding: 14px;"><p style="margin: 0; font-size: 24px; font-weight: 700;">10</p><p style="margin: 0; font-size: 12px; color: #a1a1aa;">Usuarios activos</p></div>
+      <div style="border: 1px solid #27272a; border-radius: 10px; padding: 14px;"><p style="margin: 0; font-size: 24px; font-weight: 700;">62</p><p style="margin: 0; font-size: 12px; color: #a1a1aa;">Casos</p></div>
+      <div style="border: 1px solid #27272a; border-radius: 10px; padding: 14px;"><p style="margin: 0; font-size: 24px; font-weight: 700;">48</p><p style="margin: 0; font-size: 12px; color: #a1a1aa;">Pacientes</p></div>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <a href="AdminUsuarios.dc.html" style="display: inline-flex; align-items: center; min-height: 38px; padding: 0 14px; background: #7c3aed; color: #fff; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none;">Usuarios</a>
+      <a href="AdminAuditoria.dc.html" style="display: inline-flex; align-items: center; min-height: 38px; padding: 0 14px; background: #27272a; color: #fafafa; border-radius: 6px; font-size: 13px; text-decoration: none;">Auditoría</a>
+    </div>
+    <section style="border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0; font-size: 14px; font-weight: 600;">Usuarios y roles</h3>
+        <span style="font-size: 12px; color: #a1a1aa;">Formulario «Nuevo usuario» abierto ↓</span>
+      </div>
+      <form style="border: 1px solid #27272a; background: #121216; border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h4 style="margin: 0; font-size: 13px; font-weight: 600;">Nuevo usuario</h4>
+          <button type="button" aria-label="Cerrar" style="width: 32px; height: 32px; background: transparent; border: 0; color: #a1a1aa; font-size: 18px;">×</button>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px;">
+          <div style="display: flex; flex-direction: column; gap: 4px;"><label for="u-rut" style="font-size: 12px; font-weight: 500;">RUT</label><input id="u-rut" style="height: 36px; padding: 0 8px;"></div>
+          <div style="display: flex; flex-direction: column; gap: 4px;"><label for="u-name" style="font-size: 12px; font-weight: 500;">Nombre completo</label><input id="u-name" style="height: 36px; padding: 0 8px;"></div>
+          <div style="display: flex; flex-direction: column; gap: 4px;"><label for="u-mail" style="font-size: 12px; font-weight: 500;">Email</label><input id="u-mail" type="email" style="height: 36px; padding: 0 8px;"></div>
+          <div style="display: flex; flex-direction: column; gap: 4px;"><label for="u-role" style="font-size: 12px; font-weight: 500;">Rol</label><select id="u-role" style="height: 36px; padding: 0 8px;"><option>Médico</option><option>Administrativo</option><option>Administrador</option></select></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;"><label for="u-pass" style="font-size: 12px; font-weight: 500;">Contraseña inicial (mín. 8 caracteres)</label><input id="u-pass" type="password" style="height: 36px; padding: 0 8px;"></div>
+        <button type="button" style="align-self: flex-start; min-height: 38px; padding: 0 16px; background: #7c3aed; color: #fff; border: 0; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 600;">Crear usuario</button>
+      </form>
+      <div style="overflow-x: auto; border: 1px solid #27272a; border-radius: 8px;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead style="background: #18181b;"><tr><th>Nombre</th><th>RUT</th><th>Email</th><th>Rol</th><th>Último acceso</th><th>Estado</th></tr></thead>
+          <tbody>
+            <sc-for list="{{users}}" as="u" hint-placeholder-count="5">
+              <tr>
+                <td>{{u.name}}</td>
+                <td style="color: #a1a1aa; font-family: ui-monospace, monospace;">{{u.rut}}</td>
+                <td style="color: #a1a1aa;">{{u.mail}}</td>
+                <td><select aria-label="Rol" style="height: 32px; padding: 0 6px; font-size: 12px;"><option>{{u.role}}</option></select></td>
+                <td style="color: #a1a1aa;">{{u.last}}</td>
+                <td><button type="button" style="{{u.stStyle}}">{{u.st}}</button></td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <footer style="border-top: 1px solid #27272a; padding: 10px 16px; text-align: center; font-size: 11px; color: #a1a1aa;">© 2025 Plataforma de Apoyo Diagnóstico Oncológico. Todos los derechos reservados.</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":820}}'>
+class Component extends DCLogic {
+renderVals() {
+  const base = 'min-height:28px;padding:0 10px;border-radius:4px;font:inherit;font-size:11px;font-weight:600;';
+  const on = base + 'background:#0f2418;color:#86efac;border:1px solid #14532d;';
+  const off = base + 'background:#2a1215;color:#fca5a5;border:1px solid #7f1d1d;';
+  const users = [
+    ['[Administrador]', '[11.111.111-1]', '[admin@hospital.cl]', 'Administrador', '[hoy hh:mm]', true],
+    ['[Dra. Médico 1]', '[22.222.222-2]', '[medico1@hospital.cl]', 'Médico', '[hoy hh:mm]', true],
+    ['[Dr. Médico 2]', '[33.333.333-3]', '[medico2@hospital.cl]', 'Médico', '[ayer hh:mm]', true],
+    ['[Administrativo 1]', '[44.444.444-4]', '[adm1@hospital.cl]', 'Administrativo', '[hoy hh:mm]', true],
+    ['[Administrativo 2]', '[55.555.555-5]', '[adm2@hospital.cl]', 'Administrativo', '—', false]
+  ].map((u) => ({ name: u[0], rut: u[1], mail: u[2], role: u[3], last: u[4], st: u[5] ? 'Activo' : 'Inactivo', stStyle: u[5] ? on : off }));
+  return { users };
+}
+}
+</script>
+</body>
+</html>

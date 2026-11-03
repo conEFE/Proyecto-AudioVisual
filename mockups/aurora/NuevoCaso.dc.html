@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Aurora · Nuevo caso y paciente</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#09090b}
+a{color:#a78bfa}a:hover{color:#c4b5fd}
+select,input,textarea{background:#09090b;border:1px solid #3f3f46;border-radius:6px;color:#fafafa;font:inherit;font-size:13px;box-sizing:border-box}
+</style>
+</helmet>
+<div style="position: relative; min-height: 1000px; display: flex; flex-direction: column; background: #09090b; color: #fafafa; font-family: Inter, system-ui, sans-serif;">
+  <dc-import name="Header" active="cases" role="ADMINISTRATIVO" hint-size="100%,96px"></dc-import>
+  <main style="flex-grow: 1; width: 100%; max-width: 1280px; margin: 0 auto; padding: 24px 32px; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start;">
+    <div style="flex: 3 1 560px; min-width: 0; height: 420px; border: 1px dashed #3f3f46; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #a1a1aa;">[Lista de casos — ver artboard 04]</div>
+    <section style="flex: 2 1 400px; min-width: 0; border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0; font-size: 15px; font-weight: 600;">Nuevo caso</h3>
+        <a href="Casos.dc.html" aria-label="Cerrar" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; color: #a1a1aa; text-decoration: none; font-size: 18px;">×</a>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 12px; font-weight: 500;">Paciente</span>
+        <button type="button" style="min-height: 38px; background: #27272a; color: #fafafa; border: 0; border-radius: 6px; font: inherit; font-size: 13px;">Seleccionar o registrar paciente</button>
+      </div>
+      <fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px;">
+        <legend style="font-size: 12px; font-weight: 500; margin-bottom: 6px;">Síntomas</legend>
+        <label style="display: flex; gap: 8px; align-items: center; font-size: 13px;"><input type="checkbox" style="accent-color: #7c3aed;"> Masa palpable</label>
+        <label style="display: flex; gap: 8px; align-items: center; font-size: 13px;"><input type="checkbox" style="accent-color: #7c3aed;"> Secreción por el pezón</label>
+        <label style="display: flex; gap: 8px; align-items: center; font-size: 13px;"><input type="checkbox" style="accent-color: #7c3aed;"> Cambios en piel o pezón</label>
+      </fieldset>
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <label for="nb" style="font-size: 12px; font-weight: 500;">BI-RADS informado</label>
+        <select id="nb" style="height: 36px; padding: 0 8px;"><option>Sin informe</option></select>
+      </div>
+      <button type="button" disabled style="min-height: 40px; background: #27272a; color: #71717a; border: 0; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 600;">Crear caso</button>
+    </section>
+  </main>
+
+  <!-- Modal PatientModal (abierto) -->
+  <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.65); display: flex; align-items: flex-start; justify-content: center; padding: 72px 16px 16px; box-sizing: border-box;">
+    <div role="dialog" aria-modal="true" aria-labelledby="pm-title" style="width: 100%; max-width: 560px; background: #0e0e12; border: 1px solid #27272a; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid #27272a;">
+        <h2 id="pm-title" style="margin: 0; font-size: 16px; font-weight: 700;">Paciente</h2>
+        <button type="button" aria-label="Cerrar" style="width: 36px; height: 36px; background: transparent; border: 0; color: #a1a1aa; font-size: 18px;">×</button>
+      </div>
+      <div style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; gap: 6px;">
+          <button type="button" style="flex: 1; min-height: 38px; background: #27272a; color: #a1a1aa; border: 0; border-radius: 6px; font: inherit; font-size: 13px;">Buscar existente</button>
+          <button type="button" style="flex: 1; min-height: 38px; background: #7c3aed; color: #fff; border: 0; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 600;">Registrar nuevo</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <label for="p-rut" style="font-size: 12px; font-weight: 500;">RUT *</label>
+          <input id="p-rut" placeholder="12345678-5" style="height: 36px; padding: 0 8px;">
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+          <div style="display: flex; flex-direction: column; gap: 4px;"><label for="p-first" style="font-size: 12px; font-weight: 500;">Nombres *</label><input id="p-first" style="height: 36px; padding: 0 8px;"></div>
+          <div style="display: flex; flex-direction: column; gap: 4px;"><label for="p-last" style="font-size: 12px; font-weight: 500;">Apellidos *</label><input id="p-last" style="height: 36px; padding: 0 8px;"></div>
+          <div style="display: flex; flex-direction: column; gap: 4px;"><label for="p-birth" style="font-size: 12px; font-weight: 500;">Fecha de nacimiento *</label><input id="p-birth" type="date" style="height: 36px; padding: 0 8px;"></div>
+          <div style="display: flex; flex-direction: column; gap: 4px;"><label for="p-sex" style="font-size: 12px; font-weight: 500;">Sexo</label><select id="p-sex" style="height: 36px; padding: 0 8px;"><option>Femenino</option><option>Masculino</option><option>Otro</option></select></div>
+        </div>
+        <fieldset style="border: 1px solid #27272a; border-radius: 8px; margin: 0; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
+          <legend style="font-size: 12px; font-weight: 500; padding: 0 4px;">Antecedentes</legend>
+          <label style="display: flex; gap: 8px; align-items: center; font-size: 13px;"><input type="checkbox" style="accent-color: #7c3aed;"> Antecedente familiar de 1er grado</label>
+          <label style="display: flex; gap: 8px; align-items: center; font-size: 13px;"><input type="checkbox" style="accent-color: #7c3aed;"> Cáncer de mama previo</label>
+        </fieldset>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <label for="p-hist" style="font-size: 12px; font-weight: 500;">Historial médico / notas</label>
+          <textarea id="p-hist" rows="3" style="padding: 8px;"></textarea>
+        </div>
+        <label style="display: flex; gap: 8px; align-items: flex-start; padding: 10px; border: 1px solid #1e3a8a; background: #0f1a2e; border-radius: 8px; font-size: 12px; line-height: 1.5; color: #dbeafe;">
+          <input type="checkbox" style="accent-color: #7c3aed; margin-top: 2px;">
+          <span><strong>Consentimiento informado (obligatorio).</strong> Declaro que el paciente fue informado y autoriza el tratamiento de sus datos (Ley 19.628).</span>
+        </label>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" style="flex: 1; min-height: 40px; background: #27272a; color: #fafafa; border: 0; border-radius: 6px; font: inherit; font-size: 13px;">Cancelar</button>
+          <button type="button" style="flex: 1; min-height: 40px; background: #7c3aed; color: #fff; border: 0; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 600;">Registrar paciente</button>
+        </div>
+        <p style="margin: 0; font-size: 11px; color: #a1a1aa;">Pestaña «Buscar existente»: campo «Buscar por RUT o nombre...» + lista de resultados con chip Consentimiento / Sin consentimiento.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

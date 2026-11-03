@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Aurora · Administración, auditoría</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#09090b}
+a{color:#a78bfa}a:hover{color:#c4b5fd}
+select,input{background:#09090b;border:1px solid #3f3f46;border-radius:6px;color:#fafafa;font:inherit;font-size:13px;box-sizing:border-box}
+th{padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+td{padding:10px 12px;font-size:12px;white-space:nowrap;border-top:1px solid #27272a}
+</style>
+</helmet>
+<div style="min-height: 820px; display: flex; flex-direction: column; background: #09090b; color: #fafafa; font-family: Inter, system-ui, sans-serif;">
+  <dc-import name="Header" active="panel" role="ADMIN" hint-size="100%,96px"></dc-import>
+  <main style="flex-grow: 1; width: 100%; max-width: 1280px; margin: 0 auto; padding: 24px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+    <div>
+      <h2 style="margin: 0; font-size: 20px; font-weight: 700;">Administración</h2>
+      <p style="margin: 4px 0 0; font-size: 13px; color: #a1a1aa;">Usuarios, roles y bitácora de auditoría. (Tarjetas de totales iguales a la pestaña Usuarios.)</p>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <a href="AdminUsuarios.dc.html" style="display: inline-flex; align-items: center; min-height: 38px; padding: 0 14px; background: #27272a; color: #fafafa; border-radius: 6px; font-size: 13px; text-decoration: none;">Usuarios</a>
+      <a href="AdminAuditoria.dc.html" style="display: inline-flex; align-items: center; min-height: 38px; padding: 0 14px; background: #7c3aed; color: #fff; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none;">Auditoría</a>
+    </div>
+    <section style="border: 1px solid #27272a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <h3 style="margin: 0; font-size: 14px; font-weight: 600;">Bitácora de auditoría</h3>
+        <span style="font-size: 12px; color: #a1a1aa;">1.284 registros</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px;">
+        <select aria-label="Acción" style="height: 36px; padding: 0 8px;"><option>Todas las acciones</option><option>LOGIN_OK</option><option>LOGIN_FAIL</option><option>VIEW</option><option>CREATE</option><option>UPDATE</option><option>DOWNLOAD</option><option>OVERRIDE</option><option>CONFIG_CHANGE</option><option>SIGN</option><option>SIGN_FAIL</option><option>EXPORT</option></select>
+        <select aria-label="Usuario" style="height: 36px; padding: 0 8px;"><option>Todos los usuarios</option></select>
+        <input type="date" aria-label="Desde" style="height: 36px; padding: 0 8px;">
+        <input type="date" aria-label="Hasta" style="height: 36px; padding: 0 8px;">
+      </div>
+      <div style="overflow-x: auto; border: 1px solid #27272a; border-radius: 8px;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead style="background: #18181b;"><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Entidad</th><th>IP</th><th>Detalle</th></tr></thead>
+          <tbody>
+            <sc-for list="{{logs}}" as="l" hint-placeholder-count="8">
+              <tr>
+                <td style="color: #a1a1aa;">{{l.date}}</td>
+                <td>{{l.user}}</td>
+                <td><span style="{{l.style}}">{{l.action}}</span></td>
+                <td style="color: #a1a1aa;">{{l.entity}}</td>
+                <td style="color: #a1a1aa; font-family: ui-monospace, monospace;">{{l.ip}}</td>
+                <td style="color: #a1a1aa; font-family: ui-monospace, monospace; max-width: 320px; overflow: hidden; text-overflow: ellipsis;">{{l.detail}}</td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <button type="button" disabled style="min-height: 34px; padding: 0 12px; background: #27272a; color: #71717a; border: 0; border-radius: 6px; font: inherit; font-size: 12px;">Anterior</button>
+        <span style="font-size: 12px; color: #a1a1aa;">Página 1 de 26</span>
+        <button type="button" style="min-height: 34px; padding: 0 12px; background: #27272a; color: #fafafa; border: 0; border-radius: 6px; font: inherit; font-size: 12px;">Siguiente</button>
+      </div>
+    </section>
+  </main>
+  <footer style="border-top: 1px solid #27272a; padding: 10px 16px; text-align: center; font-size: 11px; color: #a1a1aa;">© 2025 Plataforma de Apoyo Diagnóstico Oncológico. Todos los derechos reservados.</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":820}}'>
+class Component extends DCLogic {
+renderVals() {
+  const b = 'padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;';
+  const norm = b + 'background:#1e1533;color:#c4b5fd;';
+  const fail = b + 'background:#2a1215;color:#fca5a5;';
+  const logs = [
+    ['[hh:mm]', '[Dra. Médico 1]', 'OVERRIDE', 'triage_result #88', '{"from":"MEDIA","to":"ALTA"}'],
+    ['[hh:mm]', '[Dra. Médico 1]', 'VIEW', 'image #41', ''],
+    ['[hh:mm]', '[Administrativo 1]', 'CREATE', 'case #151', '{"code":"AUR-2026-000151"}'],
+    ['[hh:mm]', '— (sin usuario)', 'LOGIN_FAIL', 'user', '{"rut":"[***]"}'],
+    ['[hh:mm]', '[Dr. Médico 2]', 'SIGN', 'review #30', ''],
+    ['[hh:mm]', '[Dr. Médico 2]', 'EXPORT', 'report #30', '{"format":"pdf"}'],
+    ['[hh:mm]', '[Dra. Médico 1]', 'CONFIG_CHANGE', 'triage_config #3', '{"version":3}'],
+    ['[hh:mm]', '[Administrador]', 'LOGIN_OK', 'user #1', '']
+  ].map((l) => ({ date: l[0], user: l[1], action: l[2], entity: l[3], ip: '[10.0.0.x]', detail: l[4], style: l[2] === 'LOGIN_FAIL' ? fail : norm }));
+  return { logs };
+}
+}
+</script>
+</body>
+</html>

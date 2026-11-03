@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Aurora · Cola de triage</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#09090b}
+a{color:#a78bfa}a:hover{color:#c4b5fd}
+th{padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+td{padding:10px 12px;font-size:13px;white-space:nowrap;border-top:1px solid #27272a}
+</style>
+</helmet>
+<div style="min-height: 860px; display: flex; flex-direction: column; background: #09090b; color: #fafafa; font-family: Inter, system-ui, sans-serif;">
+  <dc-import name="Header" active="queue" role="MEDICO" hint-size="100%,96px"></dc-import>
+  <main style="flex-grow: 1; width: 100%; max-width: 1280px; margin: 0 auto; padding: 24px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">
+      <div>
+        <h2 style="margin: 0; font-size: 20px; font-weight: 700;">Cola de triage</h2>
+        <p style="margin: 4px 0 0; font-size: 13px; color: #a1a1aa;">Orden: nivel (ALTA → BAJA), puntaje y antigüedad. Se actualiza cada 30 segundos.</p>
+      </div>
+      <button type="button" style="min-height: 40px; padding: 0 14px; background: #27272a; color: #fafafa; border: 0; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 500;">↻ Actualizar</button>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;">
+      <div style="border: 1px solid #27272a; border-left: 4px solid #ef4444; border-radius: 10px; padding: 14px;">
+        <p style="margin: 0; font-size: 26px; font-weight: 700;">3</p>
+        <p style="margin: 0; font-size: 12px; color: #a1a1aa;">Prioridad ALTA</p>
+      </div>
+      <div style="border: 1px solid #27272a; border-left: 4px solid #f97316; border-radius: 10px; padding: 14px;">
+        <p style="margin: 0; font-size: 26px; font-weight: 700;">4</p>
+        <p style="margin: 0; font-size: 12px; color: #a1a1aa;">Prioridad MEDIA</p>
+      </div>
+      <div style="border: 1px solid #27272a; border-left: 4px solid #22c55e; border-radius: 10px; padding: 14px;">
+        <p style="margin: 0; font-size: 26px; font-weight: 700;">2</p>
+        <p style="margin: 0; font-size: 12px; color: #a1a1aa;">Prioridad BAJA</p>
+      </div>
+    </div>
+    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #a1a1aa; min-height: 32px;">
+      <input type="checkbox" checked style="width: 16px; height: 16px; accent-color: #7c3aed;">
+      Incluir casos en revisión
+    </label>
+    <div style="border: 1px solid #27272a; border-radius: 10px; overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead style="background: #18181b;">
+          <tr><th>#</th><th>Código</th><th>Nivel</th><th>Estado</th><th>Espera</th><th>Puntaje</th><th>Regla</th><th>Paciente</th><th><span style="position: absolute; left: -9999px;">Acción</span></th></tr>
+        </thead>
+        <tbody>
+          <sc-for list="{{rows}}" as="r" hint-placeholder-count="9">
+            <tr style="{{r.rowStyle}}">
+              <td style="color: #a1a1aa;">{{r.n}}</td>
+              <td style="font-family: ui-monospace, monospace;">{{r.code}}</td>
+              <td><span style="{{r.levelStyle}}">{{r.level}}</span></td>
+              <td><span style="{{r.statusStyle}}">{{r.status}}</span></td>
+              <td style="color: #a1a1aa;">{{r.wait}}</td>
+              <td>{{r.score}} <span style="font-size: 11px; color: #93c5fd;">{{r.ov}}</span></td>
+              <td style="color: #a1a1aa;">{{r.rule}}</td>
+              <td style="color: #a1a1aa;">{{r.patient}}</td>
+              <td><a href="Casos.dc.html" style="font-size: 13px; font-weight: 600; text-decoration: none;">Abrir</a></td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin: 0; font-size: 12px; color: #a1a1aa;">✎ = nivel ajustado por médico (override). Datos ficticios.</p>
+  </main>
+  <footer style="border-top: 1px solid #27272a; padding: 10px 16px; text-align: center; font-size: 11px; color: #a1a1aa;">© 2025 Plataforma de Apoyo Diagnóstico Oncológico. Todos los derechos reservados.</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":860}}'>
+class Component extends DCLogic {
+renderVals() {
+  const LV = {
+    ALTA: ['#ef4444', 'background:#2a1215;color:#fca5a5;border:1px solid #7f1d1d;'],
+    MEDIA: ['#f97316', 'background:#2a1a0e;color:#fdba74;border:1px solid #7c2d12;'],
+    BAJA: ['#22c55e', 'background:#0f2418;color:#86efac;border:1px solid #14532d;']
+  };
+  const ST = {
+    'Priorizado': 'background:#0f1a2e;color:#93c5fd;border:1px solid #1e3a8a;',
+    'En revisión': 'background:#26210c;color:#fde047;border:1px solid #713f12;',
+    'Abierto': 'background:#1c1d22;color:#cbd5e1;border:1px solid #334155;'
+  };
+  const badge = 'padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;';
+  const data = [
+    ['AUR-2026-000142', 'ALTA', 'Priorizado', '26.4 h', '78.50', '', 'R_BIRADS', '[Paciente A]'],
+    ['AUR-2026-000151', 'ALTA', 'En revisión', '5.2 h', '71.20', '', '—', '[Paciente B]'],
+    ['AUR-2026-000155', 'ALTA', 'Priorizado', '48 min', '42.00', '', 'R_SINTOMA', '[Paciente C]'],
+    ['AUR-2026-000133', 'MEDIA', 'Priorizado', '3.1 días', '55.75', '✎', '—', '[Paciente D]'],
+    ['AUR-2026-000147', 'MEDIA', 'Priorizado', '19.0 h', '51.10', '', '—', '[Paciente E]'],
+    ['AUR-2026-000149', 'MEDIA', 'En revisión', '12.6 h', '47.30', '', '—', '[Paciente F]'],
+    ['AUR-2026-000156', 'MEDIA', 'Priorizado', '35 min', '45.00', '', '—', '[Paciente G]'],
+    ['AUR-2026-000138', 'BAJA', 'Priorizado', '2.4 días', '22.40', '', '—', '[Paciente H]'],
+    ['AUR-2026-000153', 'BAJA', 'Priorizado', '7.8 h', '15.90', '', '—', '[Paciente I]']
+  ];
+  const rows = data.map((d, i) => ({
+    n: i + 1, code: d[0], level: d[1], status: d[2], wait: d[3], score: d[4], ov: d[5], rule: d[6], patient: d[7],
+    rowStyle: 'border-left: 4px solid ' + LV[d[1]][0] + ';',
+    levelStyle: badge + LV[d[1]][1],
+    statusStyle: badge + 'font-weight:600;' + ST[d[2]]
+  }));
+  return { rows };
+}
+}
+</script>
+</body>
+</html>
