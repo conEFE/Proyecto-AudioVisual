@@ -1,0 +1,31 @@
+<!-- @dsCard group="Estado" height=96 subtitle="Nivel, estado del caso e IA simulada" -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Badge</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+  body { margin: 0; background: var(--background); color: var(--foreground); font-family: var(--font-sans); }
+  .wrap { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); }
+  .row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+  .b { padding: 2px 8px; border: 1px solid; border-radius: var(--radius-sm); font-size: 10px; line-height: 14px; font-weight: 700; }
+  .alta { color: var(--level-alta-text); background: var(--level-alta-bg); border-color: rgba(239, 68, 68, 0.3); }
+  .media { color: var(--level-media-text); background: var(--level-media-bg); border-color: rgba(249, 115, 22, 0.3); }
+  .baja { color: var(--level-baja-text); background: var(--level-baja-bg); border-color: rgba(34, 197, 94, 0.3); }
+  .st { font-weight: 600; }
+  .abierto { color: var(--status-abierto-text); background: rgba(100, 116, 139, 0.1); border-color: rgba(100, 116, 139, 0.3); }
+  .priorizado { color: var(--status-priorizado-text); background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.2); }
+  .revision { color: var(--status-en-revision-text); background: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.2); }
+  .cerrado { color: var(--status-cerrado-text); background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.2); }
+  .sim { color: var(--simulated-text); background: var(--simulated-bg); border-color: var(--simulated-border); letter-spacing: 0.025em; }
+  .none { font-size: 10px; color: var(--muted-foreground); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="row"><span class="b alta">ALTA</span><span class="b media">MEDIA</span><span class="b baja">BAJA</span><span class="none">Sin triage</span><span class="b sim" title="Resultado generado por un proveedor simulado. No es un resultado clínico real.">IA SIMULADA</span></div>
+  <div class="row"><span class="b st abierto">Abierto</span><span class="b st priorizado">Priorizado</span><span class="b st revision">En revisión</span><span class="b st cerrado">Cerrado</span></div>
+</div>
+</body>
+</html>

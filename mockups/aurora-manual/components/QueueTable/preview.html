@@ -1,0 +1,42 @@
+<!-- @dsCard group="Datos" height=210 subtitle="Cola de triage, vista del médico" -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>QueueTable</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+  body { margin: 0; background: var(--background); color: var(--foreground); font-family: var(--font-sans); }
+  .pad { padding: var(--space-4); }
+  .box { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: hsla(240, 3.7%, 15.9%, 0.5); }
+  th { padding: var(--space-2) var(--space-3); text-align: left; font-size: 10px; line-height: 14px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted-foreground); white-space: nowrap; }
+  td { padding: var(--space-2) var(--space-3); font-size: 12px; line-height: 16px; white-space: nowrap; border-top: 1px solid var(--border); }
+  .alta { border-left: 4px solid var(--level-alta); }
+  .media { border-left: 4px solid var(--level-media); }
+  .baja { border-left: 4px solid var(--level-baja); }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .mut { color: var(--muted-foreground); }
+  .b { padding: 2px 8px; border: 1px solid; border-radius: var(--radius-sm); font-size: 10px; font-weight: 700; }
+  .ba { color: var(--level-alta-text); background: var(--level-alta-bg); border-color: rgba(239, 68, 68, 0.3); }
+  .bm { color: var(--level-media-text); background: var(--level-media-bg); border-color: rgba(249, 115, 22, 0.3); }
+  .bb { color: var(--level-baja-text); background: var(--level-baja-bg); border-color: rgba(34, 197, 94, 0.3); }
+  .sp { color: var(--status-priorizado-text); background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.2); font-weight: 600; }
+  .sr { color: var(--status-en-revision-text); background: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.2); font-weight: 600; }
+  a { color: var(--primary); font-size: 12px; font-weight: 500; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="pad"><div class="box">
+<table>
+  <thead><tr><th>#</th><th>Código</th><th>Nivel</th><th>Estado</th><th>Espera</th><th>Puntaje</th><th>Regla</th><th><span hidden>Acción</span></th></tr></thead>
+  <tbody>
+    <tr class="alta"><td class="mut">1</td><td class="mono">AUR-2026-000142</td><td><span class="b ba">ALTA</span></td><td><span class="b sp">Priorizado</span></td><td class="mut">26.4 h</td><td>78.50</td><td class="mut">R_BIRADS</td><td><a href="#">Abrir</a></td></tr>
+    <tr class="media"><td class="mut">2</td><td class="mono">AUR-2026-000133</td><td><span class="b bm">MEDIA</span></td><td><span class="b sr">En revisión</span></td><td class="mut">3.1 días</td><td>55.75</td><td class="mut">—</td><td><a href="#">Abrir</a></td></tr>
+    <tr class="baja"><td class="mut">3</td><td class="mono">AUR-2026-000138</td><td><span class="b bb">BAJA</span></td><td><span class="b sp">Priorizado</span></td><td class="mut">2.4 días</td><td>22.40</td><td class="mut">—</td><td><a href="#">Abrir</a></td></tr>
+  </tbody>
+</table>
+</div></div>
+</body>
+</html>

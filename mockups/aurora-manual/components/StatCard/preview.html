@@ -1,0 +1,28 @@
+<!-- @dsCard group="Datos" height=140 subtitle="Conteo por nivel y KPI con meta" -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>StatCard</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+  body { margin: 0; background: var(--background); color: var(--foreground); font-family: var(--font-sans); }
+  .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); padding: var(--space-4); }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-3); display: flex; flex-direction: column; gap: 2px; }
+  .alta { border-left: 4px solid var(--level-alta); }
+  .media { border-left: 4px solid var(--level-media); }
+  .baja { border-left: 4px solid var(--level-baja); }
+  .n { margin: 0; font-size: 20px; line-height: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .l { margin: 0; font-size: 10px; line-height: 14px; color: var(--muted-foreground); }
+  .ok { align-self: flex-end; font-size: 10px; font-weight: 600; color: var(--level-baja-text); }
+</style>
+</head>
+<body>
+<div class="grid">
+  <div class="card alta"><p class="n">3</p><p class="l">Prioridad ALTA</p></div>
+  <div class="card media"><p class="n">4</p><p class="l">Prioridad MEDIA</p></div>
+  <div class="card baja"><p class="n">2</p><p class="l">Prioridad BAJA</p></div>
+  <div class="card"><span class="ok">✓ Cumple</span><p class="n">2.4 min</p><p class="l">Creación → triage (promedio)</p><p class="l">Meta ≤ 5 min</p></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "v": 3,
+  "layout": "files",
+  "createdOnFiles": {"v": 1, "at": "2026-11-04T12:00:00Z"},
+  "title": "Proyecto Aurora",
+  "namespace": "Aurora",
+  "libraries": [],
+  "sections": {},
+  "groups": ["Logos"],
+  "assetGroups": {
+    "Logos": {
+      "name": "Logos",
+      "tile": "l",
+      "order": ["logo-aurora.png"],
+      "files": {
+        "logo-aurora.png": {"name": "logo-aurora.png", "blob": "70a36dbd220c9316dc18711e750f63ca", "size": 1211334, "type": "image/png"}
+      }
+    }
+  },
+  "blobs": {},
+  "docs": {"sections": []},
+  "lastChange": {"by": "Claude", "at": "2026-11-04T12:00:00Z", "via": "GitHub · conEFE/Proyecto-Aurora@main", "note": "Manual creado desde el código del frontend y el logo"}
+}

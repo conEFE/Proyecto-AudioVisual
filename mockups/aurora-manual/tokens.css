@@ -1,0 +1,70 @@
+/* Proyecto Aurora — generated from tokens.json */
+:root, [data-theme="dark"] {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --primary: hsl(262.1, 83.3%, 57.8%);
+  --primary-foreground: hsl(210, 40%, 98%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --level-alta: #ef4444;
+  --level-alta-text: #f87171;
+  --level-alta-bg: rgba(239, 68, 68, 0.15);
+  --level-media: #f97316;
+  --level-media-chart: #f59e0b;
+  --level-media-text: #fb923c;
+  --level-media-bg: rgba(249, 115, 22, 0.15);
+  --level-baja: #22c55e;
+  --level-baja-text: #4ade80;
+  --level-baja-bg: rgba(34, 197, 94, 0.15);
+  --status-abierto-text: #cbd5e1;
+  --status-priorizado-text: #60a5fa;
+  --status-en-revision-text: #facc15;
+  --status-cerrado-text: var(--level-baja-text);
+  --simulated-text: #fcd34d;
+  --simulated-bg: rgba(245, 158, 11, 0.15);
+  --simulated-border: rgba(245, 158, 11, 0.4);
+  --brand-night: #10092c;
+  --brand-deep: #390a92;
+  --brand-indigo: #5853e9;
+  --brand-cyan: #3fb9f6;
+  --brand-violet: #ac44f8;
+  --brand-glow: #de97f8;
+}
+:root {
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --radius-sm: 4px;
+  --radius-lg: 8px;
+  --radius-full: 9999px;
+  --content-max-width: 1280px;
+  --header-height: 48px;
+  --font-sans: Inter, system-ui, sans-serif;
+}
+.display { font-family: var(--font-sans); font-size: 24px; line-height: 32px; font-weight: 700; }
+.page-title { font-family: var(--font-sans); font-size: 18px; line-height: 28px; font-weight: 700; }
+.card-title { font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 600; }
+.body { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 400; }
+.label { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 500; }
+.button { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 600; }
+.caption { font-family: var(--font-sans); font-size: 10px; line-height: 14px; font-weight: 400; }
+.overline { font-family: var(--font-sans); font-size: 10px; line-height: 14px; font-weight: 600; letter-spacing: 0.05em; }
+.badge { font-family: var(--font-sans); font-size: 10px; line-height: 14px; font-weight: 700; }
+.kpi { font-family: var(--font-sans); font-size: 20px; line-height: 28px; font-weight: 700; }

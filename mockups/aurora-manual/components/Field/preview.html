@@ -1,0 +1,26 @@
+<!-- @dsCard group="Formularios" height=150 subtitle="Normal, con foco y con error" -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Field</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+  body { margin: 0; background: var(--background); color: var(--foreground); font-family: var(--font-sans); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-4); padding: var(--space-4); }
+  .f { display: flex; flex-direction: column; gap: 4px; }
+  label { font-size: 12px; line-height: 16px; font-weight: 500; }
+  input { padding: var(--space-2) var(--space-3); background: var(--background); border: 1px solid var(--input); border-radius: var(--radius-sm); color: var(--foreground); font: inherit; font-size: 12px; }
+  input::placeholder { color: var(--muted-foreground); }
+  input:focus, .focus { outline: none; box-shadow: 0 0 0 2px var(--primary); border-color: transparent; }
+  .err { margin: 0; font-size: 10px; line-height: 14px; color: var(--level-alta-text); }
+</style>
+</head>
+<body>
+<div class="grid">
+  <div class="f"><label for="f1">Nombres *</label><input id="f1" placeholder="Ej: María José"></div>
+  <div class="f"><label for="f2">BI-RADS informado</label><input id="f2" class="focus" value="4 — Sospechoso"></div>
+  <div class="f"><label for="f3">RUT *</label><input id="f3" value="12345678-9"><p class="err">RUT inválido: revise el dígito verificador</p></div>
+</div>
+</body>
+</html>

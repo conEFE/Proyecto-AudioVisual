@@ -1,0 +1,53 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Proyecto Aurora</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&amp;display=swap">
+<style>
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--background); color: var(--foreground); font-family: var(--font-sans); overflow: hidden; }
+  .cover { position: relative; height: 288px; overflow: hidden; }
+  .art { position: absolute; top: 0; left: 480px; width: 480px; height: 288px; overflow: hidden; }
+  .art svg { display: block; width: 480px; height: 288px; }
+  .deep { fill: var(--brand-deep); }
+  .indigo { fill: var(--brand-indigo); }
+  .violet { fill: var(--brand-violet); }
+  .cyan { fill: var(--brand-cyan); }
+  .glow { fill: var(--brand-glow); }
+  .blk { rx: var(--radius-lg); }
+  .wave { fill: none; stroke: var(--brand-glow); stroke-width: 4; stroke-linecap: round; }
+  .wave.c { stroke: var(--brand-cyan); }
+  .words { position: absolute; left: var(--space-8); bottom: var(--space-8); max-width: 440px; }
+  .name { margin: 0; font-size: 88px; line-height: .95; font-weight: 700; letter-spacing: -.02em; color: var(--foreground); }
+  .tag { margin: var(--space-3) 0 0 4px; font-size: 14px; line-height: 20px; color: var(--muted-foreground); }
+</style>
+</head>
+<body>
+<div class="cover">
+<div class="art" aria-hidden="true">
+<svg viewBox="0 0 480 288" width="480" height="288">
+<!--
+  blocks      brand-deep 160×240 bled off the top (the logo's shadow, largest) · brand-indigo 128×192 · brand-violet 160×152 bled off top and right · brand-cyan 96×104 · brand-glow disc r12 once (the logo's point of light) — about a third of 960×288
+  arrangement one tall slab with satellites, staggered like the rising wave of the mark, space-4 gutters
+  pattern     literal motif (the aurora wave of the logo): three wave strokes rising left to right across the blocks, in brand-glow and brand-cyan
+  scales      sides in space-4 multiples; gutters space-4; wave pitch space-4; corners radius-lg; disc radius = space-3
+-->
+<rect class="deep blk" x="16" y="-16" width="160" height="240" rx="8"></rect>
+<rect class="indigo blk" x="192" y="64" width="128" height="192" rx="8"></rect>
+<rect class="violet blk" x="336" y="-16" width="160" height="152" rx="8"></rect>
+<rect class="cyan blk" x="336" y="152" width="96" height="104" rx="8"></rect>
+<circle class="glow" cx="256" cy="40" r="12"></circle>
+<path class="wave c" d="M16 240 C 96 240, 128 112, 208 112 S 320 208, 464 96"></path>
+<path class="wave" d="M16 224 C 96 224, 128 96, 208 96 S 320 192, 464 80"></path>
+<path class="wave" d="M16 208 C 96 208, 128 80, 208 80 S 320 176, 464 64"></path>
+</svg>
+</div>
+<div class="words">
+  <p class="name">Proyecto<br>Aurora</p>
+  <p class="tag">Apoya, no reemplaza, el criterio médico.</p>
+</div>
+</div>
+</body>
+</html>
